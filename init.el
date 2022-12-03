@@ -26,26 +26,6 @@
           (find-file (expand-file-name
               (let ((current-prefix-arg t)) (dired-x-read-filename-at-point "filename: ")))))))
 
-;; <:common:use-package: dash-functional>
-(use-package ediff
-  :custom
-  (ediff-split-window-function 'split-window-horizontally)
-  (ediff-window-setup-function 'ediff-setup-windows-plain)
-  (ediff-diff-options "-w"))
-
-
-;; <:common:use-package: turn off font-lock for large files>
-
-(use-package lata-noweb-mode
-  :commands lata-noweb-mode
-  :load-path "lisp"
-  :mode "\\.nw$")
-
-
-(use-package magit
-  :custom
-  (magit-ediff-dwim-show-on-hunks t))
-
 (use-package dired
   :ensure nil
   :hook (dired-before-readin
@@ -53,15 +33,88 @@
          (setq default-directory dired-directory)))
   :bind ("C-x C-j" . dired-jump))
 
+(use-package dired-rsync
+  :init
+  (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
+
+
 (use-package isearch
   :ensure nil
   :bind (:map isearch-mode-map
          ("C-y" . isearch-yank-line)))
 
+;; hoho - ibuffer
+(use-package ibuffer
+  :bind ([remap list-buffers] . ibuffer-other-window)
+  :custom
+  (ibuffer-default-sorting-mode 'recency)
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-expert t))
+
+
 (use-package shell
   :after (emacs)
   :bind (:map shell-mode-map
               ("C-c C-k" . roy-erase-comint-buffer)))
+
+(use-package ediff
+  :custom
+  (ediff-split-window-function 'split-window-horizontally)
+  (ediff-window-setup-function 'ediff-setup-windows-plain)
+  (ediff-diff-options "-w"))
+
+
+(use-package magit
+  :custom
+  (magit-ediff-dwim-show-on-hunks t))
+
+
+(use-package org
+  :init
+  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (python t) (emacs-lisp . t)))
+  ;; :hook ((org-mode . visual-line-mode)
+  ;;        (org-mode . org-indent-mode)))
+  ;; :init
+  ;; (org-babel-do-load-languages 'org-babel-load-languages '((sh . t)))
+  ;; (set org-confirm-babel-evaluate nil))
+  :bind
+  ("C-c l" . org-store-link)
+  ("C-c a" . org-agenda)
+  ("C-c c" . org-capture))
+
+(use-package org-superstar
+  :hook (org-mode . org-superstar-mode))
+
+(use-package org-download
+    :custom
+    (org-download-method 'directory)
+    (org-download-image-dir "/tmp/images")
+    (org-download-heading-lvl nil)
+    (org-download-timestamp "%Y%m%d-%H%M%S_")
+    (org-image-actual-width 300)
+    (org-download-screenshot-method "pngpaste %s")
+    :bind
+    ("C-M-y" . org-download-screenshot))
+
+
+(use-package restclient)
+
+(use-package rg
+  :after rg-menu
+  :init
+  (plist-put (symbol-plist 'rg-menu) 'transient--layout
+             (append
+              (list [2 transient-column
+                       (:description "More Switches")
+                       (
+                        (4 transient-switch
+                           (:key "!"
+                                 :description "Files without match"
+                                 :argument "--files-without-match"
+                                 :command transient:rg-menu:--files-without-match
+                                 ))
+                        )])
+              (plist-get (symbol-plist 'rg-menu) 'transient--layout))))
 
 
 (use-package py-yapf)
@@ -111,7 +164,6 @@
      (list (lambda ()
            (setq python-shell-interpreter "python3")))))
 
-;; <:common:use-package: elpy-mode setup>
 (use-package pytest
   :defer t
   :after (pyvenv)
@@ -126,88 +178,15 @@
             (end-of-buffer))
     (add-to-list 'pytest-project-root-files "pytest.ini"))
 
-
-;; hoho - ibuffer
-(use-package ibuffer
-  :bind ([remap list-buffers] . ibuffer-other-window)
-  :custom
-  (ibuffer-default-sorting-mode 'recency)
-  (ibuffer-show-empty-filter-groups nil)
-  (ibuffer-expert t))
+(use-package lsp-pyright
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
 
 
 (use-package w3m
   :defer t)
 
-
-;; <:common:use-package: xclip>
-;; <:common:use-package: clipetty>
-
-;; <:common:use-package: replace (occur-mode)>
-;; <:common:use-package: browse-url>
-
-(use-package dired-rsync
-  :init
-  (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
-
-(use-package org
-  :init
-  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (python t) (emacs-lisp . t)))
-  ;; :hook ((org-mode . visual-line-mode)
-  ;;        (org-mode . org-indent-mode)))
-  ;; :init
-  ;; (org-babel-do-load-languages 'org-babel-load-languages '((sh . t)))
-  ;; (set org-confirm-babel-evaluate nil))
-  :bind
-  ("C-c l" . org-store-link)
-  ("C-c a" . org-agenda)
-  ("C-c c" . org-capture))
-
-(use-package org-superstar
-  :hook (org-mode . org-superstar-mode))
-
-
-;; <:common:use-package: google-this>
-;; <:common:use-package: prettier (js)>
-;; <:common:use-package: js2-mode>
-;; <:common:use-package: rjsx-mode>
-;; <:common:use-package: flymake>
-;; <:common:use-package: my-docker>
-;; <:common:use-package: my-minor-modes (deferred)>
-;; <:common:use-package: lsp-mode>
-(use-package lsp-mode
-  :hook
-  (lsp-mode . lsp-enable-which-key-integration)
-  :commands (lsp lsp-deferred))
-
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :init
-  ;; disable inline documentation
-  (setq lsp-ui-sideline-enable nil)
-  ;; disable showing docs on hover at the top of the window
-  (setq lsp-ui-doc-enable nil))
-
-;; (use-package lsp-treemacs
-;;   :commands lsp-treemacs-errors-list)
-
-;; <:common:use-package: company-lsp>
-;; <:common:use-package: lsp-ui>
-;; <:common:use-package: dap-mode>
-
-(use-package org-download
-    :custom
-    (org-download-method 'directory)
-    (org-download-image-dir "/tmp/images")
-    (org-download-heading-lvl nil)
-    (org-download-timestamp "%Y%m%d-%H%M%S_")
-    (org-image-actual-width 300)
-    (org-download-screenshot-method "pngpaste %s")
-    :bind
-    ("C-M-y" . org-download-screenshot))
-
-;; <:common:use-package: nxml-mode>
-;; <:common:use-package: mwheel>
 
 (use-package vertico
   :custom
@@ -236,10 +215,23 @@
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion)))))
 
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
+(use-package company
+  :bind
+  ("C-c C-/" . #'company-other-backend)
+  ("C-c C-_" . #'company-other-backend) ;; for text terminals
+  
+  :custom
+  (company-idle-delay 0.1)
+  (company-selection-wrap-around t) ;; wrap to beginning from last
+  ;; company-tooltip-limit 50
+  ;; company-backends '(company-capf)
+  (company-minimum-prefix-length 2)
+  (company-tooltip-align-annotations t)
+
   :init
-  (savehist-mode t))
+  (company-tng-mode)
+  (company-tng-configure-default)
+  (global-company-mode t))
 
 (use-package marginalia
   :init (marginalia-mode))
@@ -263,32 +255,50 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-
-(use-package lsp-pyright
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp))))  ; or lsp-deferred
-
-;; <:common:use-package: lsp-mode (+ui)>
-;; <:common:use-package: lsp-ui>
-
-(use-package company
-  :bind
-  ("C-c C-/" . #'company-other-backend)
-  ("C-c C-_" . #'company-other-backend) ;; for text terminals
-  
+(use-package projectile
   :custom
-  (company-idle-delay 0.1)
-  (company-selection-wrap-around t) ;; wrap to beginning from last
-  ;; company-tooltip-limit 50
-  ;; company-backends '(company-capf)
-  (company-minimum-prefix-length 2)
-  (company-tooltip-align-annotations t)
+  (projectile-current-project-on-switch 'keep) ;; or 'remove
+  (projectile-switch-project-action #'projectile-dired)
+  ;; projectile-project-search-path '("~/git-dir" "/Users/rmathew8/Downloads/Planning/")
+  (projectile-require-project-root 'prompt)
 
   :init
-  (company-tng-mode)
-  (company-tng-configure-default)
-  (global-company-mode t))
+  (projectile-mode)
+  
+  :bind-keymap
+  ("C-c p" . projectile-command-map))
+
+(use-package lsp-mode
+  :hook
+  (lsp-mode . lsp-enable-which-key-integration)
+  :commands (lsp lsp-deferred))
+
+(use-package lsp-ui
+  :commands
+  lsp-ui-mode
+  :custom
+  (lsp-ui-doc-enable nil) ;; docs on hover
+  (lsp-ui-flycheck-enable nil) ;; leave default linter alone
+  (lsp-ui-imenu-enable nil)
+  (lsp-ui-peek-enable nil)
+  (lsp-ui-sideline-delay 2)
+  (lsp-ui-sideline-enable t) ;; inline documentation
+  (lsp-ui-sideline-show-code-actions nil)
+  (lsp-ui-sideline-show-diagnostics t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-symbol t)
+  (lsp-ui-sideline-update-mode t)
+  (setq lsp-ui-sideline-enable t))
+
+
+(use-package yaml-mode)
+
+(use-package flymake
+  :config
+  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+  :bind (:map flymake-mode-map
+              ("C-c C-v" . flymake-show-buffer-diagnostics)))
+
 
 (use-package go-mode
   :bind (
@@ -305,37 +315,6 @@
   :hook
   (clojure-mode . lsp))
 
-(use-package projectile
-  :custom
-  (projectile-current-project-on-switch 'keep) ;; or 'remove
-  (projectile-switch-project-action #'projectile-dired)
-  ;; projectile-project-search-path '("~/git-dir" "/Users/rmathew8/Downloads/Planning/")
-  (projectile-require-project-root 'prompt)
-
-  :init
-  (projectile-mode)
-  
-  :bind-keymap
-  ("C-c p" . projectile-command-map))
-
-(use-package restclient)
-
-(use-package rg
-  :after rg-menu
-  :init
-  (plist-put (symbol-plist 'rg-menu) 'transient--layout
-             (append
-              (list [2 transient-column
-                       (:description "More Switches")
-                       (
-                        (4 transient-switch
-                           (:key "!"
-                                 :description "Files without match"
-                                 :argument "--files-without-match"
-                                 :command transient:rg-menu:--files-without-match
-                                 ))
-                        )])
-              (plist-get (symbol-plist 'rg-menu) 'transient--layout))))
 
 (use-package multiple-cursors
   :bind
@@ -345,22 +324,19 @@
   :init
   (which-key-mode))
   
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode t))
+
 (use-package spaceline
   :config
   (require 'spaceline-config)
   ;; (spaceline-spacemacs-theme)
   (spaceline-emacs-theme))
 
-(use-package yaml-mode)
-
 (use-package password-generator)
 ;; (password-generator-strong)
-
-(use-package init-emacs
-  :ensure nil)
-
-(use-package init-defuns
-  :ensure nil)
 
 (use-package docker
   :init
@@ -368,7 +344,40 @@
   (defalias 'di 'docker-images))
 
 
+(use-package lata-noweb-mode
+  :commands lata-noweb-mode
+  :load-path "lisp"
+  :mode "\\.nw$")
+
+
+(use-package docker-tramp)
+
+(use-package init-emacs
+  :ensure nil)
+
+(use-package init-defuns
+  :ensure nil)
+
+;; <:common:use-package: "org-opml">
+;; <:common:use-package: dash-functional>
+;; <:common:use-package: turn off font-lock for large files>
+;; <:common:use-package: elpy-mode setup>
+;; <:common:use-package: xclip>
+;; <:common:use-package: clipetty>
+;; <:common:use-package: replace (occur-mode)>
+;; <:common:use-package: browse-url>
+;; <:common:use-package: google-this>
+;; <:common:use-package: prettier (js)>
+;; <:common:use-package: js2-mode>
+;; <:common:use-package: rjsx-mode>
+;; <:common:use-package: my-docker>
+;; <:common:use-package: my-minor-modes (deferred)>
+;; <:common:use-package: lsp-mode>
+;; <:common:use-package: company-lsp>
+;; <:common:use-package: lsp-ui>
+;; <:common:use-package: dap-mode>
+;; <:common:use-package: nxml-mode>
+;; <:common:use-package: mwheel>
+;; <:common:use-package: lsp-ui>
 ;; <:common:use-package: eglot>
 ;; <:common:use-package: rustic>
-;; <:common:use-package: "org-opml">
-
