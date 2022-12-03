@@ -6,8 +6,6 @@
   (global-hl-line-mode 1)
   (setenv "PAGER" "/bin/cat")
   (setenv "EDITOR" "/usr/bin/emacsclient")
-  (setq custom-file  (expand-file-name "~/.emacs.d/lisp/custom.el"))
-  (load custom-file)
 
   ;; (load-library "roy-minor-modes")
 
@@ -23,6 +21,36 @@
   ("<f12>" . call-last-kbd-macro)
   ("<home>" . beginning-of-buffer)
   ("<end>" . end-of-buffer))
+
+;; TODO: move all this to better places.
+(use-package emacs
+  :config
+  (autoload 'zap-up-to-char "misc"
+    "Kill up to, but not including ARGth occurrence of CHAR." t)
+
+  (require 'uniquify)
+  (setq uniquify-buffer-name-style 'forward)
+
+  ;; https://www.emacswiki.org/emacs/SavePlace
+  (save-place-mode 1)
+
+  (global-set-key (kbd "M-/") 'hippie-expand)
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
+  (global-set-key (kbd "M-z") 'zap-up-to-char)
+
+  (show-paren-mode 1)
+  (setq-default indent-tabs-mode nil)
+  (savehist-mode 1)
+
+  (setq save-interprogram-paste-before-kill t
+        apropos-do-all t
+        mouse-yank-at-point t
+        require-final-newline t
+        load-prefer-newer t
+        frame-inhibit-implied-resize t
+        custom-file (expand-file-name "lisp/custom.el" user-emacs-directory))
+
+  (load custom-file))
 
 (use-package emacs
   :hook
@@ -82,6 +110,22 @@
   (recentf-mode t)
   (setq completion-ignore-case t)
   (setq read-file-name-completion-ignore-case t))
+
+(use-package emacs
+  :init
+  (setq
+    ;; '(auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
+    auto-save-default t               ;; auto-save every buffer that visits a file
+    auto-save-interval 200            ;; number of keystrokes between auto-saves (default: 300)
+    auto-save-timeout 20              ;; number of seconds idle time before auto-save (default: 30)
+    backup-by-copying t               ;; Copy all files, don't rename; don't clobber symlinks
+    delete-by-moving-to-trash t
+    delete-old-versions t             ;; delete excess backup files silently
+    kept-new-versions 4               ;; Number of newest versions to keep.
+    kept-old-versions 2               ;; oldest versions to keep when a new numbered backup is made (default: 2)
+    make-backup-files t               ;; backup of a file the first time it is saved.
+    version-control t                 ;; version numbers for backup files
+    vc-make-backup-files t))
 
 
 (provide 'init-emacs)

@@ -89,6 +89,7 @@
     (interactive)
     (let ((comint-buffer-maximum-size 0))
       (comint-truncate-buffer)))
+
 (defun roy-grep-for-fb-info(arg ss)
   "search thru fb .nw files; prefix arg == chunk defns only"
   (interactive "P\nMsearch for: ")

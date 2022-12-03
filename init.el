@@ -140,11 +140,7 @@
   :defer t)
 
 
-(use-package xclip
-  ;; :unless
-  ;; (and (string= (system-name) "devvm2907.frc0.facebook.com") (not (window-system)))
-  :init (xclip-mode 1))
-
+;; <:common:use-package: xclip>
 ;; <:common:use-package: clipetty>
 
 ;; <:common:use-package: replace (occur-mode)>
@@ -179,6 +175,22 @@
 ;; <:common:use-package: my-docker>
 ;; <:common:use-package: my-minor-modes (deferred)>
 ;; <:common:use-package: lsp-mode>
+(use-package lsp-mode
+  :hook
+  (lsp-mode . lsp-enable-which-key-integration)
+  :commands (lsp lsp-deferred))
+
+(use-package lsp-ui
+  :commands lsp-ui-mode
+  :init
+  ;; disable inline documentation
+  (setq lsp-ui-sideline-enable nil)
+  ;; disable showing docs on hover at the top of the window
+  (setq lsp-ui-doc-enable nil))
+
+;; (use-package lsp-treemacs
+;;   :commands lsp-treemacs-errors-list)
+
 ;; <:common:use-package: company-lsp>
 ;; <:common:use-package: lsp-ui>
 ;; <:common:use-package: dap-mode>
@@ -199,14 +211,15 @@
 
 (use-package vertico
   :custom
-  (vertico-multiform-commands
-        '((consult-line buffer)
-          (consult-imenu reverse buffer)
-          (execute-extended-command flat)))
   (vertico-multiform-categories
         '((file buffer grid)
           (imenu (:not indexed mouse))
           (symbol (vertico-sort-function . vertico-sort-alpha))))
+  ;; vertico-multiform-commands trumps vertico-multiform-categories
+  (vertico-multiform-commands
+        '((consult-line buffer)
+          (consult-imenu reverse buffer)
+          (execute-extended-command flat)))
 
   (vertico-mode t)
   (vertico-multiform-mode t)
@@ -234,6 +247,7 @@
 (use-package consult
   :bind
   (("M-y" . 'consult-yank-from-kill-ring)
+   ([remap apropos] . consult-apropos)
    ("C-x b" . 'consult-buffer)))
 
 (use-package embark
@@ -242,7 +256,6 @@
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :disabled t
   :after (embark consult)
   :demand t ; only necessary if you have the hook below
   ;; if you want to have consult previews as you move around an
@@ -288,6 +301,10 @@
          (before-save . lsp-format-buffer)
          (before-save . lsp-organize-imports)))
 
+(use-package clojure-mode
+  :hook
+  (clojure-mode . lsp))
+
 (use-package projectile
   :custom
   (projectile-current-project-on-switch 'keep) ;; or 'remove
@@ -328,14 +345,22 @@
   :init
   (which-key-mode))
   
+(use-package spaceline
+  :config
+  (require 'spaceline-config)
+  ;; (spaceline-spacemacs-theme)
+  (spaceline-emacs-theme))
+
+(use-package yaml-mode)
+
+(use-package password-generator)
+;; (password-generator-strong)
 
 (use-package init-emacs
   :ensure nil)
 
 (use-package init-defuns
   :ensure nil)
-
-(use-package better-defaults)
 
 (use-package docker
   :init
