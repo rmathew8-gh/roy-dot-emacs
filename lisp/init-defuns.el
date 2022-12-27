@@ -145,7 +145,7 @@
     (re-search-backward "<table>" nil t)
     (shell-command-on-region (region-beginning) (region-end) "table-to-csv.sh" :replace t)))
 
-(defun slu(args)=
+(defun slu(args)
   "sort and make lines unique in a region; if no mark, operates on whole region"
   (interactive "sargs to uniq (eg: -c): \n")
   (let

@@ -88,7 +88,7 @@
   (string= (system-name) "rmathew8-mbp")
 
   :init
-  (load-theme 'modus-operandi t)
+  (load-theme 'leuven t)
   (setq dired-use-ls-dired nil) ;; macOS: ls doesn't support --dired option
   (global-unset-key (kbd "s-n"))
   (global-unset-key (kbd "s-w")))
