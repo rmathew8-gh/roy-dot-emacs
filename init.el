@@ -19,32 +19,18 @@
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp")))
 
 
+(use-package init-iterm2
+  :ensure nil
+  :if
+  (string= (system-name) "rmathew8-mbp"))
+
+
 (use-package dired-x
   :ensure nil
   :bind
   ("<f3>" . (lambda() (interactive)
           (find-file (expand-file-name
               (let ((current-prefix-arg t)) (dired-x-read-filename-at-point "filename: ")))))))
-
-;; <:common:use-package: dash-functional>
-(use-package ediff
-  :custom
-  (ediff-split-window-function 'split-window-horizontally)
-  (ediff-window-setup-function 'ediff-setup-windows-plain)
-  (ediff-diff-options "-w"))
-
-
-;; <:common:use-package: turn off font-lock for large files>
-
-(use-package lata-noweb-mode
-  :commands lata-noweb-mode
-  :load-path "lisp"
-  :mode "\\.nw$")
-
-
-(use-package magit
-  :custom
-  (magit-ediff-dwim-show-on-hunks t))
 
 (use-package dired
   :ensure nil
@@ -53,15 +39,63 @@
          (setq default-directory dired-directory)))
   :bind ("C-x C-j" . dired-jump))
 
+(use-package dired-rsync
+  :init
+  (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
+
+
 (use-package isearch
   :ensure nil
   :bind (:map isearch-mode-map
          ("C-y" . isearch-yank-line)))
 
+;; hoho - ibuffer
+(use-package ibuffer
+  :bind ([remap list-buffers] . ibuffer-other-window)
+  :custom
+  (ibuffer-default-sorting-mode 'recency)
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-expert t))
+
+
 (use-package shell
   :after (emacs)
   :bind (:map shell-mode-map
               ("C-c C-k" . roy-erase-comint-buffer)))
+
+(use-package ediff
+  :custom
+  (ediff-split-window-function 'split-window-horizontally)
+  (ediff-window-setup-function 'ediff-setup-windows-plain)
+  (ediff-diff-options "-w"))
+
+
+(use-package magit
+  :custom
+  (magit-ediff-dwim-show-on-hunks t))
+
+
+;; <:common:use-package: org>
+;; <:common:use-package: org-download>
+
+(use-package restclient)
+
+(use-package rg
+  :after rg-menu
+  :init
+  (plist-put (symbol-plist 'rg-menu) 'transient--layout
+             (append
+              (list [2 transient-column
+                       (:description "More Switches")
+                       (
+                        (4 transient-switch
+                           (:key "!"
+                                 :description "Files without match"
+                                 :argument "--files-without-match"
+                                 :command transient:rg-menu:--files-without-match
+                                 ))
+                        )])
+              (plist-get (symbol-plist 'rg-menu) 'transient--layout))))
 
 
 (use-package py-yapf)
@@ -111,7 +145,6 @@
      (list (lambda ()
            (setq python-shell-interpreter "python3")))))
 
-;; <:common:use-package: elpy-mode setup>
 (use-package pytest
   :defer t
   :after (pyvenv)
@@ -126,88 +159,23 @@
             (end-of-buffer))
     (add-to-list 'pytest-project-root-files "pytest.ini"))
 
-
-;; hoho - ibuffer
-(use-package ibuffer
-  :bind ([remap list-buffers] . ibuffer-other-window)
-  :custom
-  (ibuffer-default-sorting-mode 'recency)
-  (ibuffer-show-empty-filter-groups nil)
-  (ibuffer-expert t))
+(use-package lsp-pyright
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
 
 
-(use-package w3m
-  :defer t)
+;; <:common:use-package: w3m>
 
+(use-package xclip
+  :init (xclip-mode 1))
 
-;; <:common:use-package: xclip>
-;; <:common:use-package: clipetty>
-
-;; <:common:use-package: replace (occur-mode)>
-;; <:common:use-package: browse-url>
-
-(use-package dired-rsync
+(use-package clipetty
+  :if
+  (getenv "SSH_TTY")
   :init
-  (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
+  (global-clipetty-mode))
 
-(use-package org
-  :init
-  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (python t) (emacs-lisp . t)))
-  ;; :hook ((org-mode . visual-line-mode)
-  ;;        (org-mode . org-indent-mode)))
-  ;; :init
-  ;; (org-babel-do-load-languages 'org-babel-load-languages '((sh . t)))
-  ;; (set org-confirm-babel-evaluate nil))
-  :bind
-  ("C-c l" . org-store-link)
-  ("C-c a" . org-agenda)
-  ("C-c c" . org-capture))
-
-(use-package org-superstar
-  :hook (org-mode . org-superstar-mode))
-
-
-;; <:common:use-package: google-this>
-;; <:common:use-package: prettier (js)>
-;; <:common:use-package: js2-mode>
-;; <:common:use-package: rjsx-mode>
-;; <:common:use-package: flymake>
-;; <:common:use-package: my-docker>
-;; <:common:use-package: my-minor-modes (deferred)>
-;; <:common:use-package: lsp-mode>
-(use-package lsp-mode
-  :hook
-  (lsp-mode . lsp-enable-which-key-integration)
-  :commands (lsp lsp-deferred))
-
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :init
-  ;; disable inline documentation
-  (setq lsp-ui-sideline-enable nil)
-  ;; disable showing docs on hover at the top of the window
-  (setq lsp-ui-doc-enable nil))
-
-;; (use-package lsp-treemacs
-;;   :commands lsp-treemacs-errors-list)
-
-;; <:common:use-package: company-lsp>
-;; <:common:use-package: lsp-ui>
-;; <:common:use-package: dap-mode>
-
-(use-package org-download
-    :custom
-    (org-download-method 'directory)
-    (org-download-image-dir "/tmp/images")
-    (org-download-heading-lvl nil)
-    (org-download-timestamp "%Y%m%d-%H%M%S_")
-    (org-image-actual-width 300)
-    (org-download-screenshot-method "pngpaste %s")
-    :bind
-    ("C-M-y" . org-download-screenshot))
-
-;; <:common:use-package: nxml-mode>
-;; <:common:use-package: mwheel>
 
 (use-package vertico
   :custom
@@ -236,10 +204,23 @@
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion)))))
 
-;; Persist history over Emacs restarts. Vertico sorts by history position.
-(use-package savehist
+(use-package company
+  :bind
+  ("C-c C-/" . #'company-other-backend)
+  ("C-c C-_" . #'company-other-backend) ;; for text terminals
+  
+  :custom
+  (company-idle-delay 0.1)
+  (company-selection-wrap-around t) ;; wrap to beginning from last
+  ;; company-tooltip-limit 50
+  ;; company-backends '(company-capf)
+  (company-minimum-prefix-length 2)
+  (company-tooltip-align-annotations t)
+
   :init
-  (savehist-mode t))
+  (company-tng-mode)
+  (company-tng-configure-default)
+  (global-company-mode t))
 
 (use-package marginalia
   :init (marginalia-mode))
@@ -263,48 +244,6 @@
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-
-(use-package lsp-pyright
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp))))  ; or lsp-deferred
-
-;; <:common:use-package: lsp-mode (+ui)>
-;; <:common:use-package: lsp-ui>
-
-(use-package company
-  :bind
-  ("C-c C-/" . #'company-other-backend)
-  ("C-c C-_" . #'company-other-backend) ;; for text terminals
-  
-  :custom
-  (company-idle-delay 0.1)
-  (company-selection-wrap-around t) ;; wrap to beginning from last
-  ;; company-tooltip-limit 50
-  ;; company-backends '(company-capf)
-  (company-minimum-prefix-length 2)
-  (company-tooltip-align-annotations t)
-
-  :init
-  (company-tng-mode)
-  (company-tng-configure-default)
-  (global-company-mode t))
-
-(use-package go-mode
-  :bind (
-         ;; If you want to switch existing go-mode bindings to use lsp-mode/gopls instead
-         ;; uncomment the following lines
-         ;; ("C-c C-j" . lsp-find-definition)
-         ;; ("C-c C-d" . lsp-describe-thing-at-point)
-         )
-  :hook ((go-mode . lsp-deferred)
-         (before-save . lsp-format-buffer)
-         (before-save . lsp-organize-imports)))
-
-(use-package clojure-mode
-  :hook
-  (clojure-mode . lsp))
-
 (use-package projectile
   :custom
   (projectile-current-project-on-switch 'keep) ;; or 'remove
@@ -318,24 +257,46 @@
   :bind-keymap
   ("C-c p" . projectile-command-map))
 
-(use-package restclient)
+(use-package lsp-mode
+  :hook
+  (lsp-mode . lsp-enable-which-key-integration)
+  :commands (lsp lsp-deferred))
 
-(use-package rg
-  :after rg-menu
-  :init
-  (plist-put (symbol-plist 'rg-menu) 'transient--layout
-             (append
-              (list [2 transient-column
-                       (:description "More Switches")
-                       (
-                        (4 transient-switch
-                           (:key "!"
-                                 :description "Files without match"
-                                 :argument "--files-without-match"
-                                 :command transient:rg-menu:--files-without-match
-                                 ))
-                        )])
-              (plist-get (symbol-plist 'rg-menu) 'transient--layout))))
+;; see https://emacs-lsp.github.io/lsp-mode/tutorials/how-to-turn-off/
+(use-package lsp-ui
+  :commands
+  lsp-ui-mode
+  :custom
+  (lsp-ui-doc-enable nil) ;; docs on hover
+  (lsp-ui-flycheck-enable nil) ;; leave default linter alone
+  (lsp-ui-imenu-enable nil)
+  (lsp-ui-peek-enable nil)
+  (lsp-ui-sideline-delay 1)
+  (lsp-ui-sideline-enable t) ;; inline documentation
+  (lsp-ui-sideline-show-code-actions nil)
+  (lsp-ui-sideline-show-diagnostics t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-show-symbol t)
+  (lsp-ui-sideline-update-mode t)
+  (setq lsp-ui-sideline-enable t))
+
+
+(use-package yaml-mode)
+
+(use-package flymake
+  :config
+  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+  :bind (:map flymake-mode-map
+              ("C-c C-v" . flymake-show-buffer-diagnostics)))
+
+
+;; <:common:use-package: go-mode>
+(use-package clojure-mode
+  :hook
+  ;; (clojure-mode . #'paredit-mode)
+  ((clojure-mode . lsp))
+  (clojure-mode . smartparens-strict-mode))
+
 
 (use-package multiple-cursors
   :bind
@@ -345,16 +306,93 @@
   :init
   (which-key-mode))
   
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode t))
+
 (use-package spaceline
   :config
   (require 'spaceline-config)
   ;; (spaceline-spacemacs-theme)
   (spaceline-emacs-theme))
 
-(use-package yaml-mode)
-
 (use-package password-generator)
 ;; (password-generator-strong)
+
+(use-package nodejs-repl
+
+  :init
+  (defun roy/nodejs-repl-send-para ()
+    (interactive)
+    (save-excursion
+      (nodejs--erase-buffer)
+      (mark-paragraph)
+      (nodejs-repl-send-region  (region-beginning) (region-end))
+      (deactivate-mark)))
+
+  ;; this is faster; I've modified it from the default.
+  (defun nvm--which ()
+    (let ((output (shell-command-to-string (concat "source " (getenv "HOME") "/.nvm/nvm.sh; nvm which current"))))
+      (car (split-string output "[\n]+" t))))
+
+  (setq nodejs-repl-command #'nvm--which)
+
+  (defun nodejs--erase-buffer ()
+    "Erase the associated buffer"
+	(interactive)
+    (let ((buf (process-buffer (nodejs-repl--get-or-create-process))))
+      (with-current-buffer buf
+        (progn
+          (erase-buffer)
+          (comint-send-input)))))
+
+  :bind
+  (:map js2-mode-map
+        ("C-x C-e" . nodejs-repl-send-last-expression)
+        ("C-c C-j" . nodejs-repl-send-line)
+        ("C-c C-r" . nodejs-repl-send-region)
+        ("C-c C-p" . roy/nodejs-repl-send-para)
+        ("C-c C-c" . nodejs-repl-send-buffer)
+        ("C-c C-l" . nodejs-repl-load-file)
+        ;; ("C-c C-k" . nodejs--erase-buffer)
+        ("C-c C-k" . (lambda ()
+                       (interactive)
+                       (nodejs-repl-switch-to-repl)
+                       (nodejs--erase-buffer)
+                       (other-window 1)))
+        ("C-c C-z" . (lambda ()
+                       (interactive)
+                       (nodejs-repl-switch-to-repl)
+                       (other-window 1))))
+
+  :hook
+  (nodejs-repl-mode
+   . 
+   (lambda ()
+     (remove-hook 'comint-output-filter-functions 'nodejs-repl--delete-prompt t))))
+
+
+(use-package js2-mode
+  :init
+  (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+  (setq js-indent-level 2)
+  :hook
+  (js2-mode . lsp))
+
+(use-package docker
+  :init
+  (defalias 'dc 'docker-containers)
+  (defalias 'di 'docker-images))
+
+(use-package docker-tramp)
+
+(use-package lata-noweb-mode
+  :commands lata-noweb-mode
+  :load-path "lisp"
+  :mode "\\.nw$")
+
+;; (use-package ox-gfm)
 
 (use-package init-emacs
   :ensure nil)
@@ -362,13 +400,6 @@
 (use-package init-defuns
   :ensure nil)
 
-(use-package docker
-  :init
-  (defalias 'dc 'docker-containers)
-  (defalias 'di 'docker-images))
-
-
-;; <:common:use-package: eglot>
-;; <:common:use-package: rustic>
-;; <:common:use-package: "org-opml">
+(use-package init-org-mode
+  :ensure nil)
 

@@ -6,7 +6,7 @@
  '(backup-directory-alist (list (cons "." (concat user-emacs-directory "backups"))))
  '(create-lockfiles nil)
  '(custom-safe-themes
-   '("fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" default))
+   '("a15bf10d72178d691b09c4bbf6d24b15c156fbae9e6fdbaf9aa5e1d9b4c27ca6" "fe36e4da2ca97d9d706e569024caa996f8368044a8253dc645782e01cd68d884" "fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" default))
  '(ediff-diff-options "-w")
  '(ediff-split-window-function 'split-window-horizontally)
  '(ediff-window-setup-function 'ediff-setup-windows-plain)
@@ -22,7 +22,30 @@
  '(magit-repository-directories '(("~/git-dir" . 1)))
  '(markdown-command "pandoc")
  '(package-selected-packages
-   '(arduino-mode cider clipetty company company-graphviz-dot company-lsp consult consult-dir dash-functional dired dired-rsync dired-x docker docker-tramp eglot elpy embark embark-consult go-mode google-this graphviz-dot-mode init-emacs isearch kubernetes kubernetes-tramp lata-noweb-mode lsp-mode lsp-pyright lsp-ui magit marginalia multiple-cursors mwheel nxml-mode orderless org-bullets org-download org-superstar ox-gfm plantuml-mode prettier projectile py-yapf pytest pyvenv replace restclient rg rjsx-mode rustic savehist sgml-mode spacemacs-theme use-package vertico vterm w3m wgrep which-key xclip yaml-mode yapf yapfify))
+   '(autothemer dracula-theme spacegray-theme arjen-grey-theme org-auto-tangle yaml-mode xclip which-key vertico use-package spacemacs-theme spaceline rg restclient pyvenv pytest py-yapf projectile password-generator org-superstar org-download org-bullets orderless nodejs-repl multiple-cursors marginalia magit lsp-ui lsp-pyright js2-mode go-mode embark-consult docker-tramp docker dired-rsync company clojure-mode clipetty))
+ '(safe-local-variable-values
+   '((eval add-hook #'after-save-hook
+           (lambda nil
+             (org-ascii-export-as-ascii))
+           nil t)
+     (eval add-hook #'after-save-hook
+           (lambda nil
+             (progn
+               (org-html-export-as-html)
+               (org-ascii-export-as-ascii)))
+           nil t)
+     (eval add-hook #'after-save-hook
+           (lambda nil
+             (progn
+               (org-ascii-export-as-ascii)
+               (org-html-export-as-html)))
+           nil t)
+     (eval add-hook #'after-save-hook
+           (lambda nil
+             (progn
+               (org-ascii-export-as-ascii)
+               (org-ascii-export-as-html)))
+           nil t)))
  '(sort-fold-case t)
  '(split-height-threshold nil)
  '(split-width-threshold 100)

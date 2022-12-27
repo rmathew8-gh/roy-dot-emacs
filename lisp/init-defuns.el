@@ -16,8 +16,6 @@
 (defalias 'ks 'roy-grep-for-kust-info)
 (defalias 'kcs 'kustomer-code-search)
 
-(provide 'init-defuns)
-
 
 (defun gf(&optional arg)
   "search; w/prefix, does keas search only; always prunes .git"
@@ -105,7 +103,7 @@
 
   (cd "~/git-dir")
   ;; (grep (concat "grep -ni " ss " Noweb-Files/Literate-Programming/*.nw Noweb-Files.Personal/Literate-Programming/.*.nw" )))
-  (grep (concat "egrep \"" ss "\" -rni --include=\"*.nw\" ./Noweb-Files/Literate-Programming ./Noweb-Files.Personal/Literate-Programming")))
+  (grep (concat "grep -E \"" ss "\" -rni --include=\"*.nw\" ./Noweb-Files/Literate-Programming ./Noweb-Files.Personal/Literate-Programming")))
 
 (defun roy-grep-for-kust-info(arg ss)
   "search thru fb .nw files; prefix arg == chunk defns only"
@@ -157,4 +155,6 @@
     (sort-lines nil beg end)
     (shell-command-on-region beg end (concat "uniq " args) nil t)))
 
+
+(provide 'init-defuns)
 
