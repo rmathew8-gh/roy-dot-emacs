@@ -88,6 +88,16 @@
     (let ((comint-buffer-maximum-size 0))
       (comint-truncate-buffer)))
 
+(defun roy-org-export-md()
+  (interactive)
+  (let ((buf (org-md-export-as-markdown)))
+    (set-buffer buf)
+    (flush-lines "^$")
+    (beginning-of-buffer)
+    (kill-line 1)
+    (beginning-of-buffer)
+    (replace-regexp "^#" "\n#")))
+
 (defun roy-grep-for-fb-info(arg ss)
   "search thru fb .nw files; prefix arg == chunk defns only"
   (interactive "P\nMsearch for: ")
@@ -103,7 +113,7 @@
 
   (cd "~/git-dir")
   ;; (grep (concat "grep -ni " ss " Noweb-Files/Literate-Programming/*.nw Noweb-Files.Personal/Literate-Programming/.*.nw" )))
-  (grep (concat "grep -E \"" ss "\" -rni --include=\"*.nw\" ./Noweb-Files/Literate-Programming ./Noweb-Files.Personal/Literate-Programming")))
+  (grep (concat "grep -E \"" ss "\" -rni --include=\"*.nw\" --include=\"*.org\" ./Noweb-Files/Literate-Programming ./Noweb-Files.Personal/Literate-Programming")))
 
 (defun roy-grep-for-kust-info(arg ss)
   "search thru fb .nw files; prefix arg == chunk defns only"
@@ -112,7 +122,7 @@
   (let
       ((ss (if arg (concat ss ".*=") ss)))
     (cd "~/git-dir/Kustomer/Literate-Programming")
-    (grep (concat "rg --no-heading -0HL -g \"*.nw\" -g \"x.*\" -i " ss " ."))))
+    (grep (concat "rg --no-heading -0HL -g \"*.nw\" -g \"x.*\" -g \"*.org\" -i " ss " ."))))
 
 (defun roy-show-multiple-windows(elems)
 
@@ -154,6 +164,17 @@
     ;;(message "beg: %s; end: %s; args: %s" beg end args)
     (sort-lines nil beg end)
     (shell-command-on-region beg end (concat "uniq " args) nil t)))
+
+(defun roy-get-ediff-region (buf-type)
+  "invoke as (insert (roy-get-ediff-region 'A))"
+  (with-current-buffer "*Ediff Control Panel*"
+	(let*
+		((n ediff-current-difference)
+		 (start (ediff-get-diff-posn buf-type 'beg n (current-buffer)))
+		 (end   (ediff-get-diff-posn buf-type 'end n (current-buffer)))
+		 (buf (or (and (eq buf-type 'A) ediff-buffer-A) ediff-buffer-B)))
+      (with-current-buffer buf
+		(buffer-substring-no-properties start end)))))
 
 
 (provide 'init-defuns)

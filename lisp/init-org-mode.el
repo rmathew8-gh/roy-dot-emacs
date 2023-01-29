@@ -29,8 +29,21 @@
         x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
   (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (python t) (emacs-lisp . t)))
   (setq org-confirm-babel-evaluate nil)
+
+  :bind
+  (:map org-mode-map
+        ("C-," . org-insert-structure-template)
+        ([remap org-shiftright] . org-demote-subtree)
+        ([remap org-shiftleft] . org-promote-subtree)
+        ("<left>" . outline-previous-visible-heading)
+        ("<right>" . outline-next-visible-heading)
+        ("S-<up>" . outline-up-heading))
+
   :hook
   ((org-mode . prettify-symbols-mode)
+   (org-mode . 
+             (lambda()
+               (visual-line-mode t)))
    (org-mode . org-auto-tangle-mode)))
 
 ;; (use-package org-superstar

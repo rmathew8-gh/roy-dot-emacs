@@ -19,11 +19,7 @@
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp")))
 
 
-(use-package init-iterm2
-  :ensure nil
-  :if
-  (string= (system-name) "rmathew8-mbp"))
-
+;; <:common:use-package: init-iterm2 (macbook)>
 
 (use-package dired-x
   :ensure nil
@@ -97,6 +93,10 @@
                         )])
               (plist-get (symbol-plist 'rg-menu) 'transient--layout))))
 
+
+(use-package jq-format
+  :demand t
+  :after json-mode)
 
 (use-package py-yapf)
 
@@ -262,24 +262,7 @@
   (lsp-mode . lsp-enable-which-key-integration)
   :commands (lsp lsp-deferred))
 
-;; see https://emacs-lsp.github.io/lsp-mode/tutorials/how-to-turn-off/
-(use-package lsp-ui
-  :commands
-  lsp-ui-mode
-  :custom
-  (lsp-ui-doc-enable nil) ;; docs on hover
-  (lsp-ui-flycheck-enable nil) ;; leave default linter alone
-  (lsp-ui-imenu-enable nil)
-  (lsp-ui-peek-enable nil)
-  (lsp-ui-sideline-delay 1)
-  (lsp-ui-sideline-enable t) ;; inline documentation
-  (lsp-ui-sideline-show-code-actions nil)
-  (lsp-ui-sideline-show-diagnostics t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-sideline-show-symbol t)
-  (lsp-ui-sideline-update-mode t)
-  (setq lsp-ui-sideline-enable t))
-
+;; <:common:use-package: lsp-ui>
 
 (use-package yaml-mode)
 
@@ -393,6 +376,8 @@
   :mode "\\.nw$")
 
 ;; (use-package ox-gfm)
+
+(use-package git-timemachine)
 
 (use-package init-emacs
   :ensure nil)
