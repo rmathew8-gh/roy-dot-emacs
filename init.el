@@ -283,7 +283,7 @@
 
 (use-package multiple-cursors
   :bind
-  ("C-M-j" . mc/mark-all-like-this-dwim))
+  ("C-M-j" . mc/mark-all-like-this))
 
 (use-package which-key
   :init

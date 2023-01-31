@@ -1,10 +1,6 @@
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  '(backup-directory-alist (list (cons "." (concat user-emacs-directory "backups"))))
- '(create-lockfiles nil)
+ '(create-lockfiles nil) ;; cannot be relocated.
  '(custom-safe-themes
    '("fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" default))
  '(ediff-diff-options "-w")
@@ -13,17 +9,15 @@
  '(electric-indent-mode nil)
  '(fill-column 100)
  '(grep-command "grep -niH --null -e ")
- '(grep-find-command
-   '("find . -type f -exec grep -niH --null -e  \\{\\} +" . 42))
  '(ibuffer-use-other-window t)
  '(inhibit-startup-screen t)
  '(initial-major-mode 'fundamental-mode)
  '(initial-scratch-message nil)
- '(magit-ediff-dwim-show-on-hunks t)
  '(magit-repository-directories '(("~/git-dir" . 1)))
+ '(grep-find-command
+   '("find . -type f -exec grep -niH --null -e  \\{\\} +" . 42))
  '(markdown-command "pandoc")
- '(package-selected-packages
-   '(yaml-mode xclip which-key vertico use-package ssh spacemacs-theme spaceline spacegray-theme rg restclient pyvenv pytest py-yapf projectile password-generator ox-gfm org-superstar org-download org-bullets org-auto-tangle orderless nodejs-repl multiple-cursors marginalia magit lsp-ui lsp-pyright js2-mode jq-format go-mode git-timemachine embark-consult dracula-theme docker-tramp docker dired-rsync company clojure-mode clipetty autothemer arjen-grey-theme))
+ '(magit-ediff-dwim-show-on-hunks t)
  '(sort-fold-case t)
  '(split-height-threshold nil)
  '(split-width-threshold 100)
