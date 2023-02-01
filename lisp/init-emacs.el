@@ -65,7 +65,7 @@
        (scroll-bar-mode -1)
 
        (when (or (eq system-type 'darwin) (eq system-type 'gnu/linux))
-     (set-face-attribute 'default nil :family "Monaco" :height 145)))))
+     (set-face-attribute 'default nil :family "Monaco" :height 112)))))
 
 ;; on x11
 (use-package emacs
