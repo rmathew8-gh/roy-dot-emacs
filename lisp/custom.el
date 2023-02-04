@@ -20,12 +20,12 @@
  '(magit-ediff-dwim-show-on-hunks t) 
  '(magit-repository-directories '(("~/git-dir" . 1))) 
  '(markdown-command "pandoc") 
- '(package-selected-packages '(org-bullets git-timemachine docker-tramp docker js2-mode nodejs-repl
-                                           password-generator spaceline which-key multiple-cursors
-                                           clojure-mode yaml-mode projectile embark-consult embark
-                                           consult marginalia company orderless vertico clipetty
-                                           xclip lsp-pyright pytest pyvenv py-yapf jq-format rg
-                                           restclient magit dired-rsync use-package)) 
+ '(package-selected-packages '(ssh org-bullets git-timemachine docker-tramp docker js2-mode
+                                   nodejs-repl password-generator spaceline which-key
+                                   multiple-cursors clojure-mode yaml-mode projectile embark-consult
+                                   embark consult marginalia company orderless vertico clipetty
+                                   xclip lsp-pyright pytest pyvenv py-yapf jq-format rg restclient
+                                   magit dired-rsync use-package)) 
  '(sort-fold-case t) 
  '(split-height-threshold nil) 
  '(split-width-threshold 100) 
