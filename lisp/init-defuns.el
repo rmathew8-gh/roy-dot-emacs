@@ -11,11 +11,6 @@
 (defalias 'ms 'magit-status)
 (defalias 'sbke  'save-buffers-kill-emacs)
 
-(defalias 'fs 'roy-grep-for-fb-info)
-(defalias 'ss 'roy-grep-for-info)
-(defalias 'ks 'roy-grep-for-kust-info)
-(defalias 'kcs 'kustomer-code-search)
-
 
 (defun gf
     (&optional 
@@ -47,6 +42,9 @@
   (let ((file-re "\\.?\\(.*\\).nw$")) 
     (string-match file-re filename) 
     (match-string-no-properties 1 filename)))
+  (let ((file-re "\\.?\\(.*\\).\\(org\\|nw\\)$")) 
+    (and (string-match file-re filename) 
+         (match-string-no-properties 1 filename))))
 
 (defun ie() 
   "Does an info-edit on the argument" 
@@ -56,6 +54,9 @@
                (dir-2 (expand-file-name "~/git-dir/Noweb-Files.Personal/Literate-Programming")) 
                (files-1 (directory-files dir-1 nil "nw$")) 
                (files-2 (directory-files dir-2 nil "nw$")) 
+               (pattern "\\(org\\|nw\\)$") 
+               (files-1 (directory-files dir-1 nil pattern)) 
+               (files-2 (directory-files dir-2 nil pattern)) 
                (map-fn   (apply-partially (lambda(d f) 
                                             (cons (ie-get-bare-name f) 
                                                   (concat d "/" f))))) 
@@ -65,7 +66,6 @@
                  (mapcar map-fn-2 files-2))))
   (let* ((roy-ie-key (completing-read "Enter info-edit key: " roy-info-keys nil t nil))) 
     (find-file (cdr (assoc roy-ie-key roy-info-keys)))))
-
 
 (defun kustomer-code-search(arg ss) 
   "code-search: kustomer (prefix->filenames; else->contents)" 
@@ -78,6 +78,9 @@
 (defun rb() 
   (interactive) 
   (let ((new-name (read-string "rename-to: " (buffer-name)))) 
+(defun rb()
+  (interactive)
+  (let ((new-name (read-string "rename-to: " (buffer-name))))
     (rename-buffer new-name)))
 (defun roy-erase-comint-buffer() 
   (interactive) 
@@ -152,6 +155,25 @@
                   (point-max)))) 
     (shell-command-on-region beg end "org-strip-properties.sh" 
                              :replace t)))
+(defun roy/create-org-link(beg end)
+  "select a region; convert it to an org-link using url on next line"
+  (interactive "r")
+  (let ((desc)(link))
+    (save-excursion
+      (next-line)
+      (org-beginning-of-line)
+      (if (looking-at ".*\\(https://.*$\\)")
+          (progn (setq desc (buffer-substring-no-properties beg end)
+                       link (buffer-substring-no-properties (match-beginning 1) (match-end 1)))
+                 (beginning-of-line)
+                 (kill-line 1))))
+    (org-insert-link nil link desc)))
+
+(defun roy/org-strip-properties(&optional beg end)
+  (interactive "r")
+  (let ((beg  (or beg (point-min)))
+        (end  (or end (point-max))))
+    (shell-command-on-region beg end "org-strip-properties.sh" :replace t)))
 
 (defun slu(args) 
   "sort and make lines unique in a region; if no mark, operates on whole region" 
@@ -165,18 +187,41 @@
 
 (defun roy-get-ediff-region (buf-type) 
   "invoke as (insert (roy-get-ediff-region 'A))"
-  (with-current-buffer "*Ediff Control Panel*" (let* ((n ediff-current-difference) 
-                                                      (start (ediff-get-diff-posn buf-type 'beg n
-                                                                                  (current-buffer))) 
-                                                      (end   (ediff-get-diff-posn buf-type 'end n
-                                                                                  (current-buffer))) 
-                                                      (buf (or (and (eq buf-type 'A) 
-                                                                    ediff-buffer-A) 
-                                                               ediff-buffer-B))) 
-                                                 (with-current-buffer buf 
-                                                   (buffer-substring-no-properties 
-                                                    start
-                                                    end)))))
+  (with-current-buffer "*Ediff Control Panel*"
+    (let*
+        ((n ediff-current-difference)
+         (start (ediff-get-diff-posn buf-type 'beg n (current-buffer)))
+         (end   (ediff-get-diff-posn buf-type 'end n (current-buffer)))
+         (buf (or (and (eq buf-type 'A) ediff-buffer-A) ediff-buffer-B)))
+      (with-current-buffer buf
+        (buffer-substring-no-properties start end)))))
+
+(defun roy-grep-for-info(ss kw &optional pattern)
+  "search thru .nw files (kustomer, fb or personal)"
+  (let*
+      ((dirs '((:kustomer . "~/git-dir/Kustomer/Literate-Programming")
+              (:facebook . "~/git-dir/Facebook/Literate-Programming")
+              (:kust-code . "~/git-dir/Kustomer/kustomer")
+              (:all . "~/git-dir")
+              (:personal . "~/git-dir/Noweb-Files")))
+       (dir (cdr (assoc kw dirs)))
+       (pattern (or pattern "{*.nw,*.org}")))
+    (rg ss pattern dir)))
+
+(defun ss(ss &optional arg)
+  (interactive "Msearch for: \nP")
+  (let ((choice (if arg :all :personal)))
+    (roy-grep-for-info ss choice)))
+
+(defun ks(ss &optional arg)
+  (interactive "Msearch for: \nP")
+  (let ((choice (if arg :kust-code :kustomer))
+        (pattern (if arg "{*.md,*.js}")))
+    (roy-grep-for-info ss choice pattern)))
+
+(defun fs(ss)
+  (interactive "Msearch for: ")
+  (roy-grep-for-info ss :facebook))
 
 
 (provide 'init-defuns)

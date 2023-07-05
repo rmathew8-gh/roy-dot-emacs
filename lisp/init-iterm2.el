@@ -14,7 +14,7 @@ Return an event vector."
 
     (add-hook
      'after-make-frame-functions
-     (lambda 
+     (lambda
          ;; Take advantage of iterm2's CSI u support (https://gitlab.com/gnachman/iterm2/-/issues/8382).
          (xterm--init-modify-other-keys)
 

@@ -114,20 +114,14 @@
   "Abbrev table used while in lata-noweb mode.")
 (define-abbrev-table 'lata-noweb-mode-abbrev-table ())
 
-; ("\\<anchor\\>" (0 'lata-noweb-code-decl) ("\\<item\\>" nil nil (0 'modeline))) -- works!
-; ("^@" (0 'lata-noweb-code-decl-face) (".*\\(\r\\|\n\\)" nil nil (0 'info-node)))
-(defvar lata-noweb-font-lock-keywords
-  '((roy-match-comment-chunk  .   'lata-noweb-comment-face)
-    ("^\\(<<.*>>=\\)\W*$"     1   'lata-noweb-code-decl-face)
-    ("\\(<<.*>>\\)[^=]"       1   'lata-noweb-code-instance-face))
+(defvar lata-noweb-font-lock-keywords 
+  '((roy-match-comment-chunk  .   'font-lock-comment-face)   ;; lata-noweb-comment-face
+    ("^\\(<<.*>>=\\)\W*$"     1   'bookmark-face)            ;; 'lata-noweb-code-decl-face
+    ("\\(<<.*>>\\)[^=]"       1   'font-lock-constant-face)) ;; lata-noweb-code-instance-face)))
+  ;; '((roy-match-comment-chunk  .   'lata-noweb-comment-face)
+  ;;   ("^\\(<<.*>>=\\)\W*$"     1   'lata-noweb-code-decl-face)
+  ;;   ("\\(<<.*>>\\)[^=]"       1   'lata-noweb-code-instance-face))
   "Additional expressions to highlight in Shell mode.")
-
-; This works!
-; (defvar lata-noweb-font-lock-keywords
-;   '(("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
-;     ("^[^ \t\n]+:.*" . font-lock-string-face)
-;     ("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
-;   "Additional expressions to highlight in Shell mode.")
 
 
 (defun my-turn-on-font-lock ()
@@ -447,6 +441,23 @@
        (point-min) (point-max)
        (concat "notangle.sh expand \"topLevel\" " _action) out-buf out-buf nil t))))
 
+(defun roy-newest-rearrange(&optional action)
+  "call nw funcs"
+  (interactive "P")
+  (let*
+      ((choices
+        '(("rearrange") ("drop") ("keep")))
+       (_action
+	(cond
+	 ((eq action nil) "rearrange")
+	 (t (completing-read "action [rearrange]: " choices nil t nil nil "rearrange"))))
+       (out-buf (not (equal _action "keep"))))
+
+    (save-excursion
+      (shell-command-on-region
+       (point-min) (point-max)
+       "python -m main.tangle" out-buf out-buf nil t))))
+
 
 (defun mnf( &optional my-go-forward-p )
 
@@ -533,8 +544,8 @@
 
      ((equal chunk-type "py")
       (save-excursion
-        ;; (elpy-shell-switch-to-shell)
-        (python-shell-switch-to-shell)
+        (elpy-shell-switch-to-shell)
+        ;; (python-shell-switch-to-shell)
         (comint-clear-buffer)
         (other-window 1)
         (mark-paragraph)

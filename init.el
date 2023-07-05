@@ -56,6 +56,13 @@
 
 (use-package shell
   :after (emacs)
+
+  :hook
+  ;; ls assumes tab='8 spaces'
+  (shell-mode . (lambda () 
+    (setq tab-width 8)
+    (company-mode -1)))
+
   :bind (:map shell-mode-map
               ("C-c C-k" . roy-erase-comint-buffer)))
 
@@ -69,6 +76,10 @@
 (use-package magit
   :custom
   (magit-ediff-dwim-show-on-hunks t))
+
+(use-package unicode-fonts
+  :if (string= (system-name) "roy-arch")
+  :init (unicode-fonts-setup))
 
 
 ;; <:common:use-package: org>
@@ -102,9 +113,10 @@
 
 (use-package python
   :after (py-yapf)
+
   :bind
   (:map python-mode-map
-    ("C-c C-p" . (lambda()
+    ("C-c p" . (lambda()
                (interactive)
                (insert "import pdb; pdb.set_trace() # roy")))
     ("C-c C-k" . (lambda()
@@ -127,28 +139,37 @@
 
   :custom
   (python-indent-guess-indent-offset-verbose nil)
-  :hook ((comint-output-filter-functions . python-pdbtrack-comint-output-filter-function)
-         (python-mode . py-yapf-enable-on-save)))
+
+  :config
+  (add-hook 'comint-output-filter-functions 'python-pdbtrack-comint-output-filter-function t)
+
+  :hook
+  (python-mode . py-yapf-enable-on-save))
 
 (use-package pyvenv
   :init
   ;; Set correct Python interpreter
-  (pyvenv-activate "~/.virtualenvs/py/")
+  ;; (pyvenv-activate "~/.virtualenvs/py/")
+
+  ;; This works as well.
+  (setenv "WORKON_HOME" "~/.virtualenvs")
   (pyvenv-workon "py")
 
   :custom
-   ;; python-shell-interpreter (concat pyvenv-virtual-env "bin/python3")))
-   (pyvenv-post-activate-hooks
-     (list (lambda ()
-           (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python3")))))
-   (pyvenv-post-deactivate-hooks
-     (list (lambda ()
-           (setq python-shell-interpreter "python3")))))
+  ;; python-shell-interpreter (concat pyvenv-virtual-env "bin/python3")))
+  (pyvenv-post-activate-hooks
+    (list (lambda ()
+          (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python3")))))
+  (pyvenv-post-deactivate-hooks
+    (list (lambda ()
+          (setq python-shell-interpreter "python3")))))
 
 (use-package pytest
   :defer t
   :after (pyvenv)
   :bind (("C-x p" . 'roy-ppo))
+  :init
+  (setq pytest-cmd-flags "-x -s -n0")
   :config (defun roy-ppo()
             (interactive)
             (let ((kill-buffer-query-functions nil)
@@ -159,10 +180,24 @@
             (end-of-buffer))
     (add-to-list 'pytest-project-root-files "pytest.ini"))
 
+(use-package python-pytest)
+
+;; mainly use this: M-x python-pytest-dispatch
+
+;; python-pytest
+;; python-pytest-file
+;; python-pytest-file-dwim
+;; python-pytest-files
+;; python-pytest-function
+;; python-pytest-function-dwim
+;; python-pytest-last-failed
+;; python-pytest-repeat
+
 (use-package lsp-pyright
-  :hook (python-mode . (lambda ()
+  :hook ((python-mode . (lambda ()
                           (require 'lsp-pyright)
-                          (lsp))))  ; or lsp-deferred
+                          (lsp-deferred)
+                          (add-hook 'before-save-hook 'lsp-format-buffer nil t)))))
 
 
 ;; <:common:use-package: w3m>
@@ -191,11 +226,14 @@
 
   (vertico-mode t)
   (vertico-multiform-mode t)
+  (setq completion-cycle-threshold nil)
+
   :bind (:map vertico-map
-          ("M-V" . #'vertico-multiform-vertical)   
-          ("M-G" . #'vertico-multiform-grid)       
-          ("M-F" . #'vertico-multiform-flat)       
-          ("M-R" . #'vertico-multiform-reverse)    
+          ("TAB" . #'minibuffer-complete)
+          ("M-V" . #'vertico-multiform-vertical)
+          ("M-G" . #'vertico-multiform-grid)
+          ("M-F" . #'vertico-multiform-flat)
+          ("M-R" . #'vertico-multiform-reverse)
           ("M-U" . #'vertico-multiform-unobtrusive)))
 
 (use-package orderless
@@ -206,9 +244,10 @@
 
 (use-package company
   :bind
+  ("M-SPC" . 'company-complete)
   ("C-c C-/" . #'company-other-backend)
   ("C-c C-_" . #'company-other-backend) ;; for text terminals
-  
+
   :custom
   (company-idle-delay 0.1)
   (company-selection-wrap-around t) ;; wrap to beginning from last
@@ -253,42 +292,45 @@
 
   :init
   (projectile-mode)
-  
+
   :bind-keymap
   ("C-c p" . projectile-command-map))
 
-(use-package lsp-mode
-  :hook
-  (lsp-mode . lsp-enable-which-key-integration)
+(use-package 
+  lsp-mode 
+  :init
+  (setq
+    lsp-headerline-breadcrumb-enable nil ;; avoids "Error running timer 'lsp--on-idle' issues"
+    lsp-enable-file-watchers nil
+    lsp-file-watch-threshold 100) 
+  :hook (lsp-mode . lsp-enable-which-key-integration) 
   :commands (lsp lsp-deferred))
 
 ;; <:common:use-package: lsp-ui>
 
 (use-package yaml-mode)
 
-(use-package flymake
-  :config
-  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
-  :bind (:map flymake-mode-map
-              ("C-c C-v" . flymake-show-buffer-diagnostics)))
+;; <:common:use-package: flymake>
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
 
 
-;; <:common:use-package: go-mode>
 (use-package clojure-mode
   :hook
   ;; (clojure-mode . #'paredit-mode)
-  ((clojure-mode . lsp))
+  ((clojure-mode . lsp-deferred))
   (clojure-mode . smartparens-strict-mode))
 
 
 (use-package multiple-cursors
   :bind
-  ("C-M-j" . mc/mark-all-like-this))
+  ("C-M-j" . mc/mark-all-dwim))
 
 (use-package which-key
   :init
   (which-key-mode))
-  
+
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
   :init
@@ -323,7 +365,7 @@
 
   (defun nodejs--erase-buffer ()
     "Erase the associated buffer"
-	(interactive)
+    (interactive)
     (let ((buf (process-buffer (nodejs-repl--get-or-create-process))))
       (with-current-buffer buf
         (progn
@@ -351,17 +393,39 @@
 
   :hook
   (nodejs-repl-mode
-   . 
+   .
    (lambda ()
      (remove-hook 'comint-output-filter-functions 'nodejs-repl--delete-prompt t))))
 
 
-(use-package js2-mode
-  :init
-  (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-  (setq js-indent-level 2)
-  :hook
-  (js2-mode . lsp))
+(use-package
+  elisp-format
+  :hook (emacs-lisp-mode . (lambda ()
+                             (add-hook 'before-save-hook 'elisp-format-buffer  nil t))))
+
+(use-package
+    js2-mode
+    :mode "\\.js$"
+    :config
+    (setq js-indent-level 2)
+    :hook ((js2-mode . lsp-deferred)
+           (js2-mode . (lambda ()
+                         (add-hook 'before-save-hook 'lsp-format-buffer  nil t)))))
+
+(use-package
+    typescript-mode
+    :mode "\\.ts$"
+    :config
+    (require 'dap-node) ;; subpackage of dap-mode
+    (dap-node-setup)
+    :hook ((typescript-mode . lsp-deferred)
+           (typescript-mode . (lambda ()
+                         (add-hook 'before-save-hook 'lsp-format-buffer  nil t)))))
+
+(use-package json-mode
+  :hook ((json-mode . lsp-deferred)
+         (json-mode . (lambda ()
+                       (add-hook 'before-save-hook 'json-pretty-print-buffer nil t)))))
 
 (use-package docker
   :init
@@ -375,8 +439,60 @@
   :load-path "lisp"
   :mode "\\.nw$")
 
+(use-package go-mode
+  :bind (
+         ;; If you want to switch existing go-mode bindings to use lsp-mode/gopls instead
+         ;; uncomment the following lines
+         ;; ("C-c C-j" . lsp-find-definition)
+         ;; ("C-c C-d" . lsp-describe-thing-at-point)
+         )
+  :hook (go-mode . (lambda ()
+                             (lsp-deferred)
+                             (add-hook 'before-save-hook 'lsp-format-buffer  nil t)
+                             (add-hook 'before-save-hook 'lsp-organize-imports  nil t))))
+
+(use-package rust-mode
+  :hook (rust-mode . lsp-deferred)
+  :bind
+  ("C-c g" . rust-run)
+  ("C-c t" . rust-test)
+  ("C-c b" . cargo-process-build)
+  :init
+  (which-function-mode 1)
+  (setq compilation-error-regexp-alist-alist
+      (cons '(cargo "^\\([^ \n]+\\):\\([0-9]+\\):\\([0-9]+\\): \\([0-9]+\\):\\([0-9]+\\) \\(?:[Ee]rror\\|\\([Ww]arning\\)\\):" 1 (2 . 4) (3 . 5) (6))
+        compilation-error-regexp-alist-alist))
+  :config
+  (setq rust-format-on-save t))
+
+
+(use-package ob-async)
+
+(use-package yasnippet
+    :config
+  (yas-global-mode 1))
+
+(use-package ansi-color
+    :hook (compilation-filter . ansi-color-compilation-filter)) 
+
+(use-package antlr-mode 
+  :ensure nil
+  :mode "\\.g4$")
+
+(use-package sql
+    :bind
+  (:map sql-mode-map
+        ("C-c C-k" . (lambda()
+                       (interactive)
+                       (with-current-buffer sql-buffer 
+                         (progn 
+                           (erase-buffer)))))))
+(use-package imenu-list
+  :bind (("C-c C-o" . 'imenu-list-smart-toggle)))
+
 ;; (use-package ox-gfm)
 
+(use-package ob-rust)
 (use-package git-timemachine)
 
 (use-package init-emacs

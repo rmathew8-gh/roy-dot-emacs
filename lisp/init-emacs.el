@@ -52,35 +52,39 @@
 
   (load custom-file))
 
-(use-package emacs
-  :hook
-  (window-setup
-   . (lambda ()
-       ;; this shows window frame.. 
-       (add-to-list 'initial-frame-alist '(fullscreen . fullboth)) ; was maximized
-       (add-to-list 'default-frame-alist '(fullscreen . fullboth))
-
-       (tool-bar-mode -1)
-       (menu-bar-mode -1)
-       (scroll-bar-mode -1)
-
-       (when (or (eq system-type 'darwin) (eq system-type 'gnu/linux))
-     (set-face-attribute 'default nil :family "Monaco" :height 112)))))
-
-;; on x11
-(use-package emacs
+(use-package
+  emacs
   :if
-  (eq window-system 'x)
+  (display-graphic-p)
   :bind
   (("M-<up>" . #'scroll-other-window-down)
-   ("M-<down>" . #'scroll-other-window)))
+   ("M-<down>" . #'scroll-other-window))
+  :hook (window-setup . (lambda ()
+                          ;; this shows window frame..
+                          (add-to-list 'initial-frame-alist '(fullscreen . fullboth)) ; was maximized
+                          (add-to-list 'default-frame-alist '(fullscreen . fullboth))
+                          (tool-bar-mode -1)
+                          (scroll-bar-mode -1)
+                          (let ((fsize (cond ((eq system-type 'darwin) 154)
+                                             ((eq system-type 'desktop) 124)
+                                             ((eq system-type 'gnu/linux) 124)
+                                             (t '112))))
+                            (set-face-attribute 'default nil
+                                                :family "Monaco"
+                                                :height fsize)))))
 
 ;; home pc
-(use-package emacs
-  :if
-  (string= (system-name) "manjaro")
-  :init
-  (load-theme 'modus-operandi t))
+(use-package 
+  emacs 
+  :if (member (system-name) 
+              '("t500" "desktop")) 
+  :init (setq modus-vivendi-palette-overrides '((bg-main "#333333") 
+                                                (bg-mode-line-inactive bg-tab-other))
+              modus-operandi-palette-overrides '((bg-main "#f8f8f8"))) 
+  (menu-bar-mode -1) ;; disable menu bar (both gui and terminal modes)
+  (setq modus-themes-bold-constructs t) 
+  (setq modus-themes-italic-constructs t) 
+  (load-theme 'modus-vivendi t))
 
 ;; work macbook
 (use-package emacs
@@ -96,9 +100,9 @@
 (use-package emacs
   :if
   (string= (system-name) "devvm2907.frc0.facebook.com")
+  :mode (("\\.buckconfig$" . shell-script-mode)
+         ("\\.bcfg$"       . shell-script-mode))
   :init
-  (add-to-list 'auto-mode-alist '("\\.buckconfig" . shell-script-mode))
-  (add-to-list 'auto-mode-alist '("\\.bcfg$" . shell-script-mode))
   (setq url-proxy-services
     '(("no_proxy" . "^\\(localhost\\|10.*\\)")
       ("http" . "fwdproxy:8080")
@@ -108,6 +112,7 @@
   :init
   (set-default 'truncate-lines t)
   (recentf-mode t)
+  (setq tramp-allow-unsafe-temporary-files t)
   (setq completion-ignore-case t)
   (setq read-file-name-completion-ignore-case t))
 
@@ -126,6 +131,12 @@
     make-backup-files t               ;; backup of a file the first time it is saved.
     version-control t                 ;; version numbers for backup files
     vc-make-backup-files t))
+
+(use-package emacs
+  :init
+  (winner-mode 1)
+  (global-set-key [f7] 'winner-undo)
+  (global-set-key [f8] 'winner-redo))
 
 
 (provide 'init-emacs)

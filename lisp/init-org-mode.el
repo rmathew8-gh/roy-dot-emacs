@@ -27,7 +27,7 @@
         org-startup-indented nil
         org-startup-with-inline-images t
         x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
-  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (python t) (emacs-lisp . t)))
+  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (sql . t) (python t) (emacs-lisp . t)))
   (setq org-confirm-babel-evaluate nil)
 
   :bind
@@ -40,11 +40,9 @@
         ("S-<up>" . outline-up-heading))
 
   :hook
-  ((org-mode . prettify-symbols-mode)
-   (org-mode . 
-             (lambda()
-               (visual-line-mode t)))
-   (org-mode . org-auto-tangle-mode)))
+  ((org-mode . prettify-symbols-mode)))
+   ;; (org-mode . org-auto-tangle-mode)
+   ;; (org-mode . (lambda() (visual-line-mode t)))
 
 ;; (use-package org-superstar
 ;;   :hook (org-mode . org-superstar-mode))
@@ -63,4 +61,8 @@
 ;;   (setq olivetti-body-width .9)
 ;;  :hook (org-mode . olivetti-mode))
 
+(use-package org-transform-tree-table
+  :after (org))
+
 (provide 'init-org-mode)
+
