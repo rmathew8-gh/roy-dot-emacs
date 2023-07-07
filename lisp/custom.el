@@ -1,33 +1,32 @@
-(custom-set-variables '(backup-directory-alist (list (cons "." (concat user-emacs-directory
-                                                                       "backups")))) 
-                      '(create-lockfiles nil) ;; cannot be relocated.
-                      '(custom-safe-themes '("fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088"
-                                             default)) 
-                      '(ediff-diff-options "-w") 
-                      '(ediff-split-window-function 'split-window-horizontally) 
-                      '(ediff-window-setup-function 'ediff-setup-windows-plain) 
-                      '(electric-indent-mode nil) 
-                      '(fill-column 100) 
-                      '(grep-command "grep -niH --null -e ") 
-                      '(ibuffer-use-other-window t) 
-                      '(inhibit-startup-screen t) 
-                      '(initial-major-mode 'fundamental-mode) 
-                      '(initial-scratch-message nil) 
-                      '(magit-repository-directories '(("~/git-dir" . 1))) 
-                      '(grep-find-command '("find . -type f -exec grep -niH --null -e  \\{\\} +" .
-                                            42)) 
-                      '(markdown-command "pandoc") 
-                      '(magit-ediff-dwim-show-on-hunks t) 
-                      '(sort-fold-case t) 
-                      '(split-height-threshold nil) 
-                      '(split-width-threshold 100) 
-                      '(tab-width 4) 
-                      '(temporary-file-directory "/tmp/") 
-                      '(transient-mark-mode t) 
-                      '(truncate-lines t) 
-                      '(visible-bell t) 
-                      '(warning-suppress-types 
-                        '((use-package))))
+(custom-set-variables
+ '(backup-directory-alist (list (cons "." (concat user-emacs-directory "backups"))))
+ '(create-lockfiles nil) ;; cannot be relocated.
+ '(custom-safe-themes
+   '("fa2b58bb98b62c3b8cf3b6f02f058ef7827a8e497125de0254f56e373abee088" default))
+ '(ediff-diff-options "-w")
+ '(ediff-split-window-function 'split-window-horizontally)
+ '(ediff-window-setup-function 'ediff-setup-windows-plain)
+ '(electric-indent-mode nil)
+ '(fill-column 100)
+ '(grep-command "grep -niH --null -e ")
+ '(ibuffer-use-other-window t)
+ '(inhibit-startup-screen t)
+ '(initial-major-mode 'fundamental-mode)
+ '(initial-scratch-message nil)
+ '(magit-repository-directories '(("~/git-dir" . 1)))
+ '(grep-find-command
+   '("find . -type f -exec grep -niH --null -e  \\{\\} +" . 42))
+ '(markdown-command "pandoc")
+ '(magit-ediff-dwim-show-on-hunks t)
+ '(sort-fold-case t)
+ '(split-height-threshold nil)
+ '(split-width-threshold 100)
+ '(tab-width 4)
+ '(temporary-file-directory "/tmp/")
+ '(transient-mark-mode t)
+ '(truncate-lines t)
+ '(visible-bell t)
+ '(warning-suppress-types '((use-package))))
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
@@ -43,3 +42,4 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
