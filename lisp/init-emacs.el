@@ -45,7 +45,6 @@
   (setq save-interprogram-paste-before-kill t
         apropos-do-all t
         mouse-yank-at-point t
-        require-final-newline t
         load-prefer-newer t
         frame-inhibit-implied-resize t
         custom-file (expand-file-name "lisp/custom.el" user-emacs-directory))
@@ -140,4 +139,3 @@
 
 
 (provide 'init-emacs)
-

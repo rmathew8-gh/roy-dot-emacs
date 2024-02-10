@@ -41,4 +41,3 @@ Return an event vector."
              (setq c (1+ c))))))))
 
 (provide 'init-iterm2)
-

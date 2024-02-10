@@ -153,7 +153,7 @@
 
   ;; This works as well.
   (setenv "WORKON_HOME" "~/.virtualenvs")
-  (pyvenv-workon "py")
+  (pyvenv-workon "sdxl")
 
   :custom
   ;; python-shell-interpreter (concat pyvenv-virtual-env "bin/python3")))
@@ -203,7 +203,10 @@
 ;; <:common:use-package: w3m>
 
 (use-package xclip
-  :init (xclip-mode 1))
+  :init
+  (setq select-enable-clipboard t)
+  (setq select-enable-primary t)
+  (xclip-mode 1))
 
 (use-package clipetty
   :if
@@ -398,10 +401,10 @@
      (remove-hook 'comint-output-filter-functions 'nodejs-repl--delete-prompt t))))
 
 
-(use-package
-  elisp-format
-  :hook (emacs-lisp-mode . (lambda ()
-                             (add-hook 'before-save-hook 'elisp-format-buffer  nil t))))
+;; <:common:use-package: elisp-format>
+(use-package elisp-autofmt)
+  ;; :hook (emacs-lisp-mode . (lambda ()
+  ;;                            (add-hook 'before-save-hook 'elisp-autofmt-buffer  nil t))))
 
 (use-package
     js2-mode
@@ -434,8 +437,8 @@
 
 (use-package docker-tramp)
 
-(use-package lata-noweb-mode
-  :commands lata-noweb-mode
+(use-package lata-antlr-noweb-mode
+  :commands lata-antlr-noweb-mode
   :load-path "lisp"
   :mode "\\.nw$")
 
@@ -490,6 +493,14 @@
 (use-package imenu-list
   :bind (("C-c C-o" . 'imenu-list-smart-toggle)))
 
+(use-package alert
+  :init
+  (setq alert-default-style 'libnotify)
+  (run-with-timer 0 (* 20 60) (lambda() (alert "Take a break!"))))
+
+
+
+
 ;; (use-package ox-gfm)
 
 (use-package ob-rust)
@@ -503,4 +514,4 @@
 
 (use-package init-org-mode
   :ensure nil)
-
+(put 'scroll-left 'disabled nil)

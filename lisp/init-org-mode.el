@@ -10,22 +10,24 @@
                                          ("#+end_src" . "")
                                          (">=" . "≥")
                                          ("=>" . "⇨")))
+
   (setq default-buffer-file-coding-system 'utf-8
+        ;; org-odd-levels-only t ;; odd levels only
         default-file-name-coding-system 'utf-8
-        prettify-symbols-unprettify-at-point 'right-edge
-        locale-coding-system 'utf-8
-        utf-translate-cjk-mode nil
-        line-spacing 1
         header-line-format nil ;; topmost margin => set to " "
+        line-spacing 1
+        locale-coding-system 'utf-8
         org-fontify-done-headline t ;; change the face of a headline if it is marked DONE
         org-hide-emphasis-markers t ;; hide markup (e.g. /.../ - italics; *...* - bold, etc.)
         org-hide-leading-stars nil ;; hide the stars
         org-image-actual-width '(300)
-        ;; org-odd-levels-only t ;; odd levels only
-        org-src-tab-acts-natively t
         org-pretty-entities t ;; show entities as UTF8 characters.
+        org-src-tab-acts-natively t
         org-startup-indented nil
         org-startup-with-inline-images t
+        org-todo-keyword-faces '(("TODO" . "yellow") ("PROGRESS" . "orange") ("DONE" . "green"))
+        prettify-symbols-unprettify-at-point 'right-edge
+        utf-translate-cjk-mode nil
         x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
   (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (sql . t) (python t) (emacs-lisp . t)))
   (setq org-confirm-babel-evaluate nil)
@@ -65,4 +67,3 @@
   :after (org))
 
 (provide 'init-org-mode)
-

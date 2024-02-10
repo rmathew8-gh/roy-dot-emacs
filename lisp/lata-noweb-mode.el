@@ -63,16 +63,19 @@
               (message "no actionable changes!")
             (find-file-other-window fn)))))
 
-    (define-key lata-noweb-mode-map [f4] 'notangle-python)
-    (define-key lata-noweb-mode-map [S-f4] 'notangle)
+    (define-key lata-noweb-mode-map [f4] 'roy-antlr-expand-tree)
+    (define-key lata-noweb-mode-map [f5] 'roy-antlr-gen-files)
 
-    (define-key lata-noweb-mode-map [f5] 'mlp-all-python)
-    (define-key lata-noweb-mode-map [S-f5] 'mlp-all)
+    ;; (define-key lata-noweb-mode-map [f4] 'notangle-python)
+    ;; (define-key lata-noweb-mode-map [S-f4] 'notangle)
 
-    (define-key lata-noweb-mode-map [C-f5] (lambda() (interactive )(roy-new-rearrange "topLevel" "rearrange")))
-    (define-key lata-noweb-mode-map [C-S-f5] 'roy-new-rearrange)
+    ;; (define-key lata-noweb-mode-map [f5] 'mlp-all-python)
+    ;; (define-key lata-noweb-mode-map [S-f5] 'mlp-all)
 
-    (define-key lata-noweb-mode-map [f6] 'open-last-changed-file-from-nw)
+    ;; (define-key lata-noweb-mode-map [C-f5] (lambda() (interactive )(roy-new-rearrange "topLevel" "rearrange")))
+    ;; (define-key lata-noweb-mode-map [C-S-f5] 'roy-new-rearrange)
+
+    ;; (define-key lata-noweb-mode-map [f6] 'open-last-changed-file-from-nw)
 
     (define-key lata-noweb-mode-map [left]
       (lambda()
@@ -441,7 +444,8 @@
        (point-min) (point-max)
        (concat "notangle.sh expand \"topLevel\" " _action) out-buf out-buf nil t))))
 
-(defun roy-newest-rearrange(&optional action)
+
+(defun roy-antlr-rearrange(&optional action)
   "call nw funcs"
   (interactive "P")
   (let*
@@ -457,6 +461,35 @@
       (shell-command-on-region
        (point-min) (point-max)
        "python -m main.tangle" out-buf out-buf nil t))))
+
+(defun roy-antlr-copy-tree()
+  "copy a subtree to clipboard"
+  (interactive)
+  (let ((name (save-excursion
+                (lata-next-chunk-defn t)
+                (roy-get-chunk-defn-name-on-line nil))))
+    (save-excursion
+      (shell-command-on-region
+       (point-min) (point-max)
+       (concat "python -m main.tangle -R \"" name "\"")))))
+
+(defun roy-antlr-expand-tree()
+  "expand a subtree (tangle)"
+  (interactive)
+  (let ((name (save-excursion
+                (lata-next-chunk-defn t)
+                (roy-get-chunk-defn-name-on-line nil))))
+    (save-excursion
+      (shell-command-on-region
+       (point-min) (point-max)
+       (concat "python -m main.tangle --action expand -R \"" name "\"")))))
+
+(defun roy-antlr-gen-files()
+  "generate all files (genFiles)"
+  (interactive)
+  (shell-command-on-region
+   (point-min) (point-max)
+   "python -m main.tangle -a expand"))
 
 
 (defun mnf( &optional my-go-forward-p )
