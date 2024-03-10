@@ -1,5 +1,5 @@
 (use-package org
-  :init
+  :config
   (prefer-coding-system 'utf-8)
   (set-default-coding-systems 'utf-8)
   (set-keyboard-coding-system 'utf-8)
@@ -7,7 +7,7 @@
   (set-terminal-coding-system 'utf-8)
   (setq-default prettify-symbols-alist '(
                                          ("#+begin_src" . "✤")
-                                         ("#+end_src" . "")
+                                         ("#+end_src" . "◆")
                                          (">=" . "≥")
                                          ("=>" . "⇨")))
 
@@ -29,7 +29,7 @@
         prettify-symbols-unprettify-at-point 'right-edge
         utf-translate-cjk-mode nil
         x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
-  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (sql . t) (python t) (emacs-lisp . t)))
+  (org-babel-do-load-languages 'org-babel-load-languages '((shell . t) (sql . t) (python . t) (emacs-lisp . t)))
   (setq org-confirm-babel-evaluate nil)
 
   :bind
@@ -50,7 +50,7 @@
 ;;   :hook (org-mode . org-superstar-mode))
 
 (use-package org-bullets
-  :init
+  :config
   (setq org-bullets-face-name (quote org-bullet-face))
   (setq org-bullets-bullet-list
         ;; '("◉" "☯" "○" "☯" "✸" "☯" "✿" "☯" "✜" "☯" "◆" "☯" "▶"))
@@ -59,7 +59,7 @@
   (org-mode . (lambda () (org-bullets-mode 1))))
 
 ;; (use-package olivetti
-;;   :init
+;;   :config
 ;;   (setq olivetti-body-width .9)
 ;;  :hook (org-mode . olivetti-mode))
 

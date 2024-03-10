@@ -2,7 +2,7 @@
   :load-path "lisp"
   :after (dired-x)
 
-  :init
+  :config
   (global-hl-line-mode 1)
   (setenv "PAGER" "/bin/cat")
   (setenv "EDITOR" "/usr/bin/emacsclient")
@@ -21,6 +21,12 @@
   ("<f12>" . call-last-kbd-macro)
   ("<home>" . beginning-of-buffer)
   ("<end>" . end-of-buffer))
+
+(setq apropos-do-all t
+      mouse-yank-at-point t
+      load-prefer-newer t
+      frame-inhibit-implied-resize t
+      custom-file (expand-file-name "lisp/custom.el" user-emacs-directory))
 
 ;; TODO: move all this to better places.
 (use-package emacs
@@ -41,14 +47,6 @@
   (show-paren-mode 1)
   (setq-default indent-tabs-mode nil)
   (savehist-mode 1)
-
-  (setq save-interprogram-paste-before-kill t
-        apropos-do-all t
-        mouse-yank-at-point t
-        load-prefer-newer t
-        frame-inhibit-implied-resize t
-        custom-file (expand-file-name "lisp/custom.el" user-emacs-directory))
-
   (load custom-file))
 
 (use-package
@@ -62,6 +60,7 @@
                           ;; this shows window frame..
                           (add-to-list 'initial-frame-alist '(fullscreen . fullboth)) ; was maximized
                           (add-to-list 'default-frame-alist '(fullscreen . fullboth))
+                          (menu-bar-mode -1)
                           (tool-bar-mode -1)
                           (scroll-bar-mode -1)
                           (let ((fsize (cond ((eq system-type 'darwin) 154)
@@ -72,51 +71,46 @@
                                                 :family "Monaco"
                                                 :height fsize)))))
 
-;; home pc
-(use-package 
-  emacs 
-  :if (member (system-name) 
-              '("t500" "desktop")) 
-  :init (setq modus-vivendi-palette-overrides '((bg-main "#333333") 
-                                                (bg-mode-line-inactive bg-tab-other))
-              modus-operandi-palette-overrides '((bg-main "#f8f8f8"))) 
-  (menu-bar-mode -1) ;; disable menu bar (both gui and terminal modes)
-  (setq modus-themes-bold-constructs t) 
-  (setq modus-themes-italic-constructs t) 
-  (load-theme 'modus-vivendi t))
-
-;; work macbook
+(setq known-systems '(("dell" . "red")
+                      ("ryzen" . "blue")
+                      ("t500" . "green")))
 (use-package emacs
   :if
-  (string= (system-name) "rmathew8-mbp")
-
-  :init
-  (load-theme 'leuven t)
-  (setq dired-use-ls-dired nil) ;; macOS: ls doesn't support --dired option
-  (global-unset-key (kbd "s-n"))
-  (global-unset-key (kbd "s-w")))
+  (assoc (system-name) known-systems)
+  :config
+  (setq modus-vivendi-palette-overrides '((bg-main "#333333")
+                                          (bg-mode-line-inactive bg-tab-other))
+        modus-operandi-palette-overrides '((bg-main "#f8f8f8")))
+  (menu-bar-mode -1) ;; disable menu bar (both gui and terminal modes)
+  (setq modus-themes-bold-constructs t)
+  (setq modus-themes-italic-constructs t)
+  (load-theme 'modus-vivendi t)
+  (let ((color (cdr (assoc (system-name) known-systems))))
+    (custom-set-faces
+     `(spaceline-highlight-face ((t (:background ,color)))))))
 
 (use-package emacs
   :if
   (string= (system-name) "devvm2907.frc0.facebook.com")
   :mode (("\\.buckconfig$" . shell-script-mode)
          ("\\.bcfg$"       . shell-script-mode))
-  :init
+  :config
   (setq url-proxy-services
     '(("no_proxy" . "^\\(localhost\\|10.*\\)")
       ("http" . "fwdproxy:8080")
       ("https" . "fwdproxy:8080"))))
 
 (use-package emacs
-  :init
+  :config
   (set-default 'truncate-lines t)
   (recentf-mode t)
   (setq tramp-allow-unsafe-temporary-files t)
   (setq completion-ignore-case t)
   (setq read-file-name-completion-ignore-case t))
 
+
 (use-package emacs
-  :init
+  :config
   (setq
     ;; '(auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
     auto-save-default t               ;; auto-save every buffer that visits a file
@@ -132,10 +126,17 @@
     vc-make-backup-files t))
 
 (use-package emacs
-  :init
+  :config
   (winner-mode 1)
   (global-set-key [f7] 'winner-undo)
   (global-set-key [f8] 'winner-redo))
+
+
+(use-package xclip
+  :config
+  (setq select-enable-clipboard t) ;; uses clipboard for cut/paste
+  (setq select-enable-primary t) ;; uses selection for cut/paste
+  (xclip-mode 1))
 
 
 (provide 'init-emacs)

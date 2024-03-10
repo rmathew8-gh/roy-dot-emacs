@@ -15,7 +15,7 @@
   :custom
   (use-package-always-ensure t)
   (use-package-expand-minimally t)
-  :init
+  :config
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp")))
 
 
@@ -36,7 +36,7 @@
   :bind ("C-x C-j" . dired-jump))
 
 (use-package dired-rsync
-  :init
+  :config
   (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
 
 
@@ -79,17 +79,28 @@
 
 (use-package unicode-fonts
   :if (string= (system-name) "roy-arch")
-  :init (unicode-fonts-setup))
+  :config (unicode-fonts-setup))
 
 
 ;; <:common:use-package: org>
 ;; <:common:use-package: org-download>
 
+(use-package flycheck
+  :ensure t
+  :config (global-flycheck-mode t))
+
+(use-package flycheck-pycheckers
+  :config
+  (with-eval-after-load 'flycheck
+    (add-hook 'flycheck-mode-hook #'flycheck-pycheckers-setup)))
+
+
 (use-package restclient)
+(use-package ob-restclient)
 
 (use-package rg
   :after rg-menu
-  :init
+  :config
   (plist-put (symbol-plist 'rg-menu) 'transient--layout
              (append
               (list [2 transient-column
@@ -109,10 +120,10 @@
   :demand t
   :after json-mode)
 
-(use-package py-yapf)
+(use-package blacken)
 
 (use-package python
-  :after (py-yapf)
+  :after (blacken)
 
   :bind
   (:map python-mode-map
@@ -144,16 +155,16 @@
   (add-hook 'comint-output-filter-functions 'python-pdbtrack-comint-output-filter-function t)
 
   :hook
-  (python-mode . py-yapf-enable-on-save))
+  (python-mode . blacken-mode))
 
 (use-package pyvenv
-  :init
+  :config
   ;; Set correct Python interpreter
   ;; (pyvenv-activate "~/.virtualenvs/py/")
 
   ;; This works as well.
   (setenv "WORKON_HOME" "~/.virtualenvs")
-  (pyvenv-workon "sdxl")
+  (pyvenv-workon "py")
 
   :custom
   ;; python-shell-interpreter (concat pyvenv-virtual-env "bin/python3")))
@@ -168,8 +179,8 @@
   :defer t
   :after (pyvenv)
   :bind (("C-x p" . 'roy-ppo))
-  :init
-  (setq pytest-cmd-flags "-x -s -n0")
+  :config
+  (setq pytest-cmd-flags "-x -s")
   :config (defun roy-ppo()
             (interactive)
             (let ((kill-buffer-query-functions nil)
@@ -199,20 +210,21 @@
                           (lsp-deferred)
                           (add-hook 'before-save-hook 'lsp-format-buffer nil t)))))
 
+;; (use-package lsp-mode
+;;   :hook (python-mode . lsp-deferred)
+;;   :config
+;;   (setq lsp-pyls-server-command "pyls")
+;;   )
+
+;; (use-package lsp-ui
+;;   :commands lsp-ui-mode
+;;   :config
+;;   (setq lsp-ui-doc-enable nil)
+;;   )
+
 
 ;; <:common:use-package: w3m>
-
-(use-package xclip
-  :init
-  (setq select-enable-clipboard t)
-  (setq select-enable-primary t)
-  (xclip-mode 1))
-
-(use-package clipetty
-  :if
-  (getenv "SSH_TTY")
-  :init
-  (global-clipetty-mode))
+(use-package disk-usage)
 
 
 (use-package vertico
@@ -259,13 +271,13 @@
   (company-minimum-prefix-length 2)
   (company-tooltip-align-annotations t)
 
-  :init
+  :config
   (company-tng-mode)
   (company-tng-configure-default)
   (global-company-mode t))
 
 (use-package marginalia
-  :init (marginalia-mode))
+  :config (marginalia-mode))
 
 (use-package consult
   :bind
@@ -293,7 +305,7 @@
   ;; projectile-project-search-path '("~/git-dir" "/Users/rmathew8/Downloads/Planning/")
   (projectile-require-project-root 'prompt)
 
-  :init
+  :config
   (projectile-mode)
 
   :bind-keymap
@@ -301,7 +313,7 @@
 
 (use-package 
   lsp-mode 
-  :init
+  :config
   (setq
     lsp-headerline-breadcrumb-enable nil ;; avoids "Error running timer 'lsp--on-idle' issues"
     lsp-enable-file-watchers nil
@@ -314,10 +326,7 @@
 (use-package yaml-mode)
 
 ;; <:common:use-package: flymake>
-(use-package flycheck
-  :ensure t
-  :init (global-flycheck-mode))
-
+;; <:common:use-package: flycheck>>
 
 (use-package clojure-mode
   :hook
@@ -331,12 +340,12 @@
   ("C-M-j" . mc/mark-all-dwim))
 
 (use-package which-key
-  :init
+  :config
   (which-key-mode))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
-  :init
+  :config
   (savehist-mode t))
 
 (use-package spaceline
@@ -350,7 +359,7 @@
 
 (use-package nodejs-repl
 
-  :init
+  :config
   (defun roy/nodejs-repl-send-para ()
     (interactive)
     (save-excursion
@@ -413,15 +422,18 @@
     (setq js-indent-level 2)
     :hook ((js2-mode . lsp-deferred)
            (js2-mode . (lambda ()
-                         (add-hook 'before-save-hook 'lsp-format-buffer  nil t)))))
+                         (add-hook 'before-save-hook 'prettier-prettify nil t)))))
 
 (use-package
     typescript-mode
     :mode "\\.ts$"
     :config
-    (require 'dap-node) ;; subpackage of dap-mode
-    (dap-node-setup)
+    (setq typescript-indent-level 2)
+    ;; (require 'dap-node) ;; subpackage of dap-mode
+    ;; (dap-node-setup)
+    :bind ("C-<return>" . lsp-execute-code-action)
     :hook ((typescript-mode . lsp-deferred)
+           ;; (typescript-mode . prettier-js-mode)
            (typescript-mode . (lambda ()
                          (add-hook 'before-save-hook 'lsp-format-buffer  nil t)))))
 
@@ -430,12 +442,14 @@
          (json-mode . (lambda ()
                        (add-hook 'before-save-hook 'json-pretty-print-buffer nil t)))))
 
+(use-package dockerfile-mode)
+
 (use-package docker
-  :init
+  :config
   (defalias 'dc 'docker-containers)
   (defalias 'di 'docker-images))
 
-(use-package docker-tramp)
+;; (use-package docker-tramp)
 
 (use-package lata-antlr-noweb-mode
   :commands lata-antlr-noweb-mode
@@ -454,20 +468,7 @@
                              (add-hook 'before-save-hook 'lsp-format-buffer  nil t)
                              (add-hook 'before-save-hook 'lsp-organize-imports  nil t))))
 
-(use-package rust-mode
-  :hook (rust-mode . lsp-deferred)
-  :bind
-  ("C-c g" . rust-run)
-  ("C-c t" . rust-test)
-  ("C-c b" . cargo-process-build)
-  :init
-  (which-function-mode 1)
-  (setq compilation-error-regexp-alist-alist
-      (cons '(cargo "^\\([^ \n]+\\):\\([0-9]+\\):\\([0-9]+\\): \\([0-9]+\\):\\([0-9]+\\) \\(?:[Ee]rror\\|\\([Ww]arning\\)\\):" 1 (2 . 4) (3 . 5) (6))
-        compilation-error-regexp-alist-alist))
-  :config
-  (setq rust-format-on-save t))
-
+;; <:common:use-package: rust-mode>
 
 (use-package ob-async)
 
@@ -494,16 +495,32 @@
   :bind (("C-c C-o" . 'imenu-list-smart-toggle)))
 
 (use-package alert
-  :init
+  :config
   (setq alert-default-style 'libnotify)
   (run-with-timer 0 (* 20 60) (lambda() (alert "Take a break!"))))
 
+(use-package init-org-mode
+  :ensure nil
+  :config
+  (defun org-image-resize (frame)
+    (when (derived-mode-p 'org-mode)
+      (setq org-image-actual-width (- (window-pixel-width) 80))
+      (org-redisplay-inline-images)))
 
+  (add-hook 'window-size-change-functions 'org-image-resize))
+
+(use-package prettier
+  :config
+  (setq prettier-args '(
+                        "--print-width" "120"
+                        "--single-quote" "true"
+                        )))
 
 
 ;; (use-package ox-gfm)
+;; (use-package prettier-js)
+;; (use-package ob-rust)
 
-(use-package ob-rust)
 (use-package git-timemachine)
 
 (use-package init-emacs
@@ -511,7 +528,3 @@
 
 (use-package init-defuns
   :ensure nil)
-
-(use-package init-org-mode
-  :ensure nil)
-(put 'scroll-left 'disabled nil)

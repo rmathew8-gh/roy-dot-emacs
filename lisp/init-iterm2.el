@@ -1,6 +1,6 @@
 (use-package emacs
     :if (not (display-graphic-p))
-    :init
+    :config
     (defun character--apply-modifiers (c &rest modifiers)
       "Apply modifiers to the character C.
 MODIFIERS must be a list of symbols amongst (meta control shift).
