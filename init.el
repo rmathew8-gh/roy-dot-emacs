@@ -1,23 +1,15 @@
 ;; preamble
-(require 'package)
+(setq debug-on-error t)
+
+;; (require 'package)
 (package-initialize)
+(setq use-package-always-ensure t)
+
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-(require 'use-package)
 
 
 ;; customization
-(use-package package
-  :custom
-  (use-package-always-ensure t)
-  (use-package-expand-minimally t)
-  :config
-  (add-to-list 'load-path (expand-file-name "~/.emacs.d/lisp")))
-
+;; <:common:use-package: use use-package>
 
 ;; <:common:use-package: init-iterm2 (macbook)>
 
@@ -95,6 +87,7 @@
     (add-hook 'flycheck-mode-hook #'flycheck-pycheckers-setup)))
 
 
+
 (use-package restclient)
 (use-package ob-restclient)
 
@@ -120,11 +113,13 @@
   :demand t
   :after json-mode)
 
-(use-package blacken)
-
 (use-package python
-  :after (blacken)
-
+  :mode (("\\.py\\'" . python-ts-mode))
+  :hook ((python-ts-mode . eglot-ensure)
+         (python-ts-mode . abbrev-mode)
+         (python-ts-mode . company-mode)
+         (python-ts-mode . (lambda ()
+                         (add-hook 'before-save-hook 'python-black-buffer nil t))))
   :bind
   (:map python-mode-map
     ("C-c p" . (lambda()
@@ -133,29 +128,12 @@
     ("C-c C-k" . (lambda()
                        (interactive)
                (with-current-buffer (process-buffer (python-shell-get-process))
-             (roy-erase-comint-buffer))))
-    ("C-c C-r" . (lambda(beg end)
-                       (interactive "r")
-               (display-buffer "*Python*")
-               (python-shell-send-region beg end)))
-    ("C-c C-p" . (lambda()
-                       (interactive)
-               (run-python)
-               (display-buffer "*Python*"))))
-  :bind
+             (roy-erase-comint-buffer)))))
   (:map inferior-python-mode-map
     ("C-c C-k" . (lambda()
                (interactive)
                (comint-clear-buffer))))
-
-  :custom
-  (python-indent-guess-indent-offset-verbose nil)
-
-  :config
-  (add-hook 'comint-output-filter-functions 'python-pdbtrack-comint-output-filter-function t)
-
-  :hook
-  (python-mode . blacken-mode))
+  :mode (("\\.py\\'" . python-ts-mode)))
 
 (use-package pyvenv
   :config
@@ -204,24 +182,7 @@
 ;; python-pytest-last-failed
 ;; python-pytest-repeat
 
-(use-package lsp-pyright
-  :hook ((python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred)
-                          (add-hook 'before-save-hook 'lsp-format-buffer nil t)))))
-
-;; (use-package lsp-mode
-;;   :hook (python-mode . lsp-deferred)
-;;   :config
-;;   (setq lsp-pyls-server-command "pyls")
-;;   )
-
-;; (use-package lsp-ui
-;;   :commands lsp-ui-mode
-;;   :config
-;;   (setq lsp-ui-doc-enable nil)
-;;   )
-
+;; <:common:use-package: lsp-pyright>
 
 ;; <:common:use-package: w3m>
 (use-package disk-usage)
@@ -258,23 +219,26 @@
   (completion-category-overrides '((file (styles partial-completion)))))
 
 (use-package company
+  :ensure t
   :bind
   ("M-SPC" . 'company-complete)
-  ("C-c C-/" . #'company-other-backend)
-  ("C-c C-_" . #'company-other-backend) ;; for text terminals
-
-  :custom
-  (company-idle-delay 0.1)
-  (company-selection-wrap-around t) ;; wrap to beginning from last
-  ;; company-tooltip-limit 50
-  ;; company-backends '(company-capf)
-  (company-minimum-prefix-length 2)
-  (company-tooltip-align-annotations t)
-
   :config
-  (company-tng-mode)
-  (company-tng-configure-default)
-  (global-company-mode t))
+  (setq company-idle-delay 0.1
+        company-minimum-prefix-length 1))
+
+(use-package eglot
+  :bind (:map eglot-mode-map
+              ("C-c d" . eldoc)
+              ("C-c a" . eglot-code-actions)
+              ;; ("C-c f" . flymake-show-buffer-diagnostics)
+              ("C-c r" . eglot-rename)))
+
+;; nice - makes eglot work w/flycheck
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config
+  (global-flycheck-eglot-mode 1))
 
 (use-package marginalia
   :config (marginalia-mode))
@@ -311,29 +275,18 @@
   :bind-keymap
   ("C-c p" . projectile-command-map))
 
-(use-package 
-  lsp-mode 
-  :config
-  (setq
-    lsp-headerline-breadcrumb-enable nil ;; avoids "Error running timer 'lsp--on-idle' issues"
-    lsp-enable-file-watchers nil
-    lsp-file-watch-threshold 100) 
-  :hook (lsp-mode . lsp-enable-which-key-integration) 
-  :commands (lsp lsp-deferred))
-
+;; <:common:use-package: lsp-mode>
 ;; <:common:use-package: lsp-ui>
 
-(use-package yaml-mode)
+(use-package yaml-mode
+    :after prettier
+    :hook ((yaml-mode . (lambda ()
+                         (add-hook 'before-save-hook 'prettier-prettify nil t)))))
 
 ;; <:common:use-package: flymake>
 ;; <:common:use-package: flycheck>>
 
-(use-package clojure-mode
-  :hook
-  ;; (clojure-mode . #'paredit-mode)
-  ((clojure-mode . lsp-deferred))
-  (clojure-mode . smartparens-strict-mode))
-
+;; <:common:use-package: clojure>
 
 (use-package multiple-cursors
   :bind
@@ -410,37 +363,42 @@
      (remove-hook 'comint-output-filter-functions 'nodejs-repl--delete-prompt t))))
 
 
+(use-package js
+    :after prettier
+    :hook ((js-ts-mode . eglot-ensure)
+           (js-ts-mode . company-mode)
+           (js-ts-mode . (lambda ()
+                         (add-hook 'before-save-hook 'prettier-prettify  nil t))))
+    :config (setq javascript-indent-level 2)
+    :mode (("\\.jsx\\'" . js-ts-mode)
+           ("\\.jsx\\'" . js-ts-mode)))
+
+(use-package typescript-mode
+    :after prettier
+    :hook ((typescript-ts-mode . eglot-ensure)
+           (typescript-ts-mode . company-mode)
+           (tsx-ts-mode . (lambda ()
+                         (add-hook 'before-save-hook 'prettier-prettify  nil t)))
+           (typescript-ts-mode . (lambda ()
+                         (add-hook 'before-save-hook 'prettier-prettify  nil t))))
+    :config (setq typescript-indent-level 2)
+    :mode (("\\.ts\\'" . typescript-ts-mode)
+           ("\\.tsx\\'" . tsx-ts-mode)))
+
 ;; <:common:use-package: elisp-format>
 (use-package elisp-autofmt)
   ;; :hook (emacs-lisp-mode . (lambda ()
   ;;                            (add-hook 'before-save-hook 'elisp-autofmt-buffer  nil t))))
 
-(use-package
-    js2-mode
-    :mode "\\.js$"
-    :config
-    (setq js-indent-level 2)
-    :hook ((js2-mode . lsp-deferred)
-           (js2-mode . (lambda ()
-                         (add-hook 'before-save-hook 'prettier-prettify nil t)))))
-
-(use-package
-    typescript-mode
-    :mode "\\.ts$"
-    :config
-    (setq typescript-indent-level 2)
-    ;; (require 'dap-node) ;; subpackage of dap-mode
-    ;; (dap-node-setup)
-    :bind ("C-<return>" . lsp-execute-code-action)
-    :hook ((typescript-mode . lsp-deferred)
-           ;; (typescript-mode . prettier-js-mode)
-           (typescript-mode . (lambda ()
-                         (add-hook 'before-save-hook 'lsp-format-buffer  nil t)))))
-
-(use-package json-mode
-  :hook ((json-mode . lsp-deferred)
-         (json-mode . (lambda ()
-                       (add-hook 'before-save-hook 'json-pretty-print-buffer nil t)))))
+;; <:common:use-package: js2-mode>
+;; <:common:use-package: typescript-mode>
+;; <:common:use-package: json-mode>
+(use-package json
+  :after prettier
+  :mode (("\\.json\\'" . json-ts-mode))
+  :hook ((json-ts-mode . lsp-deferred)
+         (json-ts-mode . (lambda ()
+                       (add-hook 'before-save-hook 'prettier-prettify nil t)))))
 
 (use-package dockerfile-mode)
 
@@ -456,18 +414,7 @@
   :load-path "lisp"
   :mode "\\.nw$")
 
-(use-package go-mode
-  :bind (
-         ;; If you want to switch existing go-mode bindings to use lsp-mode/gopls instead
-         ;; uncomment the following lines
-         ;; ("C-c C-j" . lsp-find-definition)
-         ;; ("C-c C-d" . lsp-describe-thing-at-point)
-         )
-  :hook (go-mode . (lambda ()
-                             (lsp-deferred)
-                             (add-hook 'before-save-hook 'lsp-format-buffer  nil t)
-                             (add-hook 'before-save-hook 'lsp-organize-imports  nil t))))
-
+;; <:common:use-package: go-mode>
 ;; <:common:use-package: rust-mode>
 
 (use-package ob-async)
@@ -510,6 +457,7 @@
   (add-hook 'window-size-change-functions 'org-image-resize))
 
 (use-package prettier
+  :ensure t
   :config
   (setq prettier-args '(
                         "--print-width" "120"
@@ -528,3 +476,44 @@
 
 (use-package init-defuns
   :ensure nil)
+
+(use-package treesit-auto
+  :commands (treesit-install-language-grammar nf/treesit-install-all-languages)
+  :init
+  (setq treesit-language-source-alist
+        '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+          (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+          (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp"))
+          (css . ("https://github.com/tree-sitter/tree-sitter-css"))
+          (cmake . ("https://github.com/uyha/tree-sitter-cmake"))
+          ;; (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+          (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+          (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+          ;; (julia . ("https://github.com/tree-sitter/tree-sitter-julia"))
+          ;; (lua . ("https://github.com/Azganoth/tree-sitter-lua"))
+          (make . ("https://github.com/alemuller/tree-sitter-make"))
+          ;; (ocaml . ("https://github.com/tree-sitter/tree-sitter-ocaml" "master" "ocaml/src"))
+          (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+          ;; (php . ("https://github.com/tree-sitter/tree-sitter-php"))
+          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
+          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src"))
+          ;; (ruby . ("https://github.com/tree-sitter/tree-sitter-ruby"))
+          ;; (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
+          (sql . ("https://github.com/m-novikov/tree-sitter-sql"))
+          (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
+          ;; (zig . ("https://github.com/GrayJack/tree-sitter-zig"))
+          ))
+
+  :config
+  (defun nf/treesit-install-all-languages ()
+    "Install all languages specified by `treesit-language-source-alist'."
+    (interactive)
+    (let ((languages (mapcar 'car treesit-language-source-alist)))
+      (dolist (lang languages)
+        (treesit-install-language-grammar lang)
+        (message "`%s' parser was installed." lang)
+        (sit-for 0.75)))))
+
+
+
