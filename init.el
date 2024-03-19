@@ -78,7 +78,6 @@
 ;; <:common:use-package: org-download>
 
 (use-package flycheck
-  :ensure t
   :config (global-flycheck-mode t))
 
 (use-package flycheck-pycheckers
@@ -219,7 +218,6 @@
   (completion-category-overrides '((file (styles partial-completion)))))
 
 (use-package company
-  :ensure t
   :bind
   ("M-SPC" . 'company-complete)
   :config
@@ -235,7 +233,6 @@
 
 ;; nice - makes eglot work w/flycheck
 (use-package flycheck-eglot
-  :ensure t
   :after (flycheck eglot)
   :config
   (global-flycheck-eglot-mode 1))
@@ -457,7 +454,6 @@
   (add-hook 'window-size-change-functions 'org-image-resize))
 
 (use-package prettier
-  :ensure t
   :config
   (setq prettier-args '(
                         "--print-width" "120"
